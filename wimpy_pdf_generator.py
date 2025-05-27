@@ -185,9 +185,19 @@ class HandwritingRenderer:
         self.resources = resource_manager
         self.current_font = None
         self.current_size = 12
+        self._registered_fonts = set()
+        self._font_cache = {}  # Cache successful font registrations
     
     def set_font(self, font_name: str, size: int):
         """Set the font for rendering"""
+        # Check cache first
+        cache_key = f"{font_name}_{size}"
+        if cache_key in self._font_cache:
+            self.current_font = self._font_cache[cache_key]
+            self.current_size = size
+            self.canvas.setFont(self.current_font, size)
+            return
+        
         font_path = self.resources.get_font(font_name)
         if font_path and font_path.lower().endswith('.ttf'):
             try:
@@ -197,63 +207,93 @@ class HandwritingRenderer:
                 
                 # Create a unique font key
                 font_key = f"wimpy_{font_name}_{size}"
-                if font_key not in getattr(self, '_registered_fonts', set()):
-                    if not hasattr(self, '_registered_fonts'):
-                        self._registered_fonts = set()
-                    
+                
+                if font_key not in self._registered_fonts:
                     try:
                         font_obj = TTFont(font_key, font_path)
                         from reportlab.pdfbase import pdfmetrics
                         pdfmetrics.registerFont(font_obj)
                         self._registered_fonts.add(font_key)
-                        self.current_font = font_key
-                        print(f"Registered Wimpy font: {font_key} from {font_path}")
+                        print(f"Successfully registered: {font_key} from {font_path}")
                     except Exception as e:
-                        print(f"Warning: Could not register font {font_name}: {e}")
-                        self.current_font = "Helvetica"  # Fallback
-                else:
+                        print(f"Failed to register font {font_name}: {e}")
+                        # Try without size in name
+                        fallback_key = f"wimpy_{font_name}"
+                        if fallback_key not in self._registered_fonts:
+                            try:
+                                font_obj = TTFont(fallback_key, font_path)
+                                pdfmetrics.registerFont(font_obj)
+                                self._registered_fonts.add(fallback_key)
+                                font_key = fallback_key
+                                print(f"Registered with fallback key: {fallback_key}")
+                            except Exception as e2:
+                                print(f"Complete font registration failure: {e2}")
+                                font_key = None
+                
+                if font_key and font_key in self._registered_fonts:
                     self.current_font = font_key
+                    self._font_cache[cache_key] = font_key
+                    self.current_size = size
+                    self.canvas.setFont(self.current_font, size)
+                    return
+                    
             except Exception as e:
-                print(f"Warning: Could not load font {font_name}: {e}")
-                self.current_font = "Helvetica"  # Fallback
-        else:
-            # Try built-in handwriting-like fonts
-            handwriting_fonts = ["Comic Sans MS", "Marker Felt", "Chalkboard SE", "Bradley Hand"]
-            for font in handwriting_fonts:
-                try:
-                    self.canvas.setFont(font, size)
-                    self.current_font = font
-                    break
-                except:
-                    continue
-            else:
-                self.current_font = "Helvetica"  # Final fallback
+                print(f"Font loading error for {font_name}: {e}")
         
+        # Fallback logic - try to use system fonts that look handwritten
+        print(f"Using fallback font for {font_name}")
+        handwriting_fonts = ["Comic Sans MS", "Marker Felt", "Chalkboard SE", "Bradley Hand", "Helvetica"]
+        for font in handwriting_fonts:
+            try:
+                self.canvas.setFont(font, size)
+                self.current_font = font
+                self._font_cache[cache_key] = font
+                self.current_size = size
+                print(f"Fallback successful: {font}")
+                return
+            except:
+                continue
+        
+        # Final fallback
+        self.current_font = "Helvetica"
+        self._font_cache[cache_key] = "Helvetica"
         self.current_size = size
-        self.canvas.setFont(self.current_font, size)
-    
+        self.canvas.setFont("Helvetica", size)
+        print(f"Using final fallback: Helvetica")
+
     def draw_text_with_effects(self, text: str, x: float, y: float, style: TextStyle):
         """Draw text with handwriting effects"""
         if not text.strip():
             return
         
-        # Apply jitter effects
-        x_offset = random.uniform(-style.x_jitter, style.x_jitter)
-        y_offset = random.uniform(-style.y_jitter, style.y_jitter)
-        rotation = random.uniform(-style.rotation_jitter, style.rotation_jitter)
+        # Ensure font is set
+        if not self.current_font:
+            self.set_font('body', style.font_size)
         
-        # Set color
-        r, g, b = style.color
-        self.canvas.setFillColorRGB(r/255.0, g/255.0, b/255.0)
+        # Apply jitter for handwriting effect
+        jitter_x = random.uniform(-style.x_jitter, style.x_jitter)
+        jitter_y = random.uniform(-style.y_jitter, style.y_jitter)
         
-        # Apply transformations
+        final_x = x + jitter_x
+        final_y = y + jitter_y
+        
+        # Set text color
+        if len(style.color) == 3:  # RGB
+            r, g, b = [c/255.0 for c in style.color]
+            self.canvas.setFillColorRGB(r, g, b)
+        
+        # Save state for rotation
         self.canvas.saveState()
-        self.canvas.translate(x + x_offset, y + y_offset)
-        self.canvas.rotate(rotation)
+        
+        # Apply slight rotation for handwriting effect
+        if style.rotation_jitter > 0:
+            rotation = random.uniform(-style.rotation_jitter, style.rotation_jitter)
+            self.canvas.rotate(rotation)
         
         # Draw the text
-        self.canvas.drawString(0, 0, text)
+        self.canvas.drawString(final_x, final_y, text)
         
+        # Restore state
         self.canvas.restoreState()
 
 
@@ -298,78 +338,88 @@ class WimpyPDFGenerator:
     
     def __init__(self, resources_dir: str = "resources"):
         self.resources = ResourceManager(resources_dir)
-        self.canvas = None
         self.page_style = None
-        self.text_styles = self._create_default_styles()
+        self.canvas = None
+        self.text_styles = self._get_text_styles()
     
-    def _create_default_styles(self) -> Dict[str, TextStyle]:
-        """Create default text styles using Wimpy Kid fonts"""
-        
-        # Get available Wimpy fonts
+    def _get_text_styles(self) -> Dict[str, TextStyle]:
+        """Get text styles for different elements"""
         wimpy_fonts = self.resources.list_wimpy_fonts()
         
-        # Select fonts for different text types - prefer working TTF fonts
-        body_font = 'body'  # Will resolve to actual font path
-        title_font = 'title'
+        print(f"Available Wimpy fonts: {wimpy_fonts}")
+        
+        # Select fonts for different text types - with better fallbacks
+        body_font = 'body'
+        title_font = 'title' 
         dialogue_font = 'dialogue'
         
-        # Fallback if no Wimpy fonts are available
-        if not wimpy_fonts:
-            print("Warning: No Wimpy Kid fonts available, using defaults")
+        # Provide fallbacks if specific fonts aren't available
+        if 'body' not in wimpy_fonts and 'main' in wimpy_fonts:
+            body_font = 'main'
+        elif not wimpy_fonts:
+            print("Warning: No Wimpy Kid fonts available, using system defaults")
             body_font = 'helvetica'
             title_font = 'helvetica'
             dialogue_font = 'helvetica'
         
-        print(f"Font mapping: {wimpy_fonts}")
+        if 'title' not in wimpy_fonts and 'cover' in wimpy_fonts:
+            title_font = 'cover'
+        elif 'title' not in wimpy_fonts and 'main' in wimpy_fonts:
+            title_font = 'main'
+        
+        if 'dialogue' not in wimpy_fonts:
+            dialogue_font = body_font
+        
+        print(f"Font assignments: body={body_font}, title={title_font}, dialogue={dialogue_font}")
         
         return {
             'paragraph': TextStyle(
-                font_path='body',
+                font_path=body_font,
                 font_size=12,
                 color=(25, 25, 35),  # Slightly blue-black like ink
-                line_spacing=1.4,
+                line_spacing=1.2,
                 x_jitter=1.2,
                 y_jitter=0.6,
                 rotation_jitter=0.15
             ),
             'h1': TextStyle(
-                font_path='title',
+                font_path=title_font,
                 font_size=18,
-                color=(10, 10, 20),
-                line_spacing=1.6,
-                x_jitter=2.0,
-                y_jitter=1.0,
-                rotation_jitter=0.25
-            ),
-            'h2': TextStyle(
-                font_path='title',
-                font_size=15,
                 color=(15, 15, 25),
-                line_spacing=1.5,
+                line_spacing=1.3,
                 x_jitter=1.5,
                 y_jitter=0.8,
                 rotation_jitter=0.2
             ),
+            'h2': TextStyle(
+                font_path=title_font,
+                font_size=15,
+                color=(15, 15, 25),
+                line_spacing=1.25,
+                x_jitter=1.3,
+                y_jitter=0.7,
+                rotation_jitter=0.18
+            ),
             'h3': TextStyle(
-                font_path='title',
+                font_path=title_font,
                 font_size=13,
                 color=(20, 20, 30),
-                line_spacing=1.4,
-                x_jitter=1.2,
+                line_spacing=1.2,
+                x_jitter=1.1,
                 y_jitter=0.6,
                 rotation_jitter=0.15
             ),
             'list_item': TextStyle(
-                font_path='body',
+                font_path=body_font,
                 font_size=11,
                 color=(30, 30, 40),
-                line_spacing=1.3,
+                line_spacing=1.15,
                 x_jitter=1.0,
                 y_jitter=0.5,
-                rotation_jitter=0.1
+                rotation_jitter=0.12
             ),
             'dialogue': TextStyle(
-                font_path='dialogue',
+                font_path=dialogue_font,
                 font_size=11,
                 color=(40, 20, 60),  # Slightly purple for dialogue
                 line_spacing=1.3,
@@ -391,7 +441,7 @@ class WimpyPDFGenerator:
         if style == "notebook":
             bg_image = self.resources.get_image("single_page")
             if not bg_image:
-                print("Using default notebook background")
+                print("Warning: Using default notebook background (no single_page.png found)")
             self.page_style = PageStyle(
                 background_image=bg_image,
                 margins=(85, 90, 72, 72)  # Extra left margin for binder holes
@@ -404,6 +454,12 @@ class WimpyPDFGenerator:
         
         # Create renderer
         renderer = HandwritingRenderer(self.canvas, self.resources)
+        
+        # Pre-register all fonts we'll need
+        print("Pre-registering fonts...")
+        for style_name, text_style in self.text_styles.items():
+            if text_style.font_path:
+                renderer.set_font(text_style.font_path, text_style.font_size)
         
         # Render content
         self._render_content(parsed_content, renderer)
@@ -504,6 +560,8 @@ class WimpyPDFGenerator:
                 if current_y < self.page_style.margins[3] + line_height:
                     self.canvas.showPage()
                     self._draw_page_background()
+                    # re-apply font after the page switch
+                    renderer.set_font(font_name, style.font_size)
                     current_y = self.page_style.height - self.page_style.margins[1] - 15
                 
                 # Render header
@@ -517,6 +575,8 @@ class WimpyPDFGenerator:
                 if current_y < self.page_style.margins[3] + line_height:
                     self.canvas.showPage()
                     self._draw_page_background()
+                    # re-apply font after the page switch
+                    renderer.set_font(font_name, style.font_size)
                     current_y = self.page_style.height - self.page_style.margins[1] - 15
                 
                 # Indent dialogue slightly
@@ -526,6 +586,8 @@ class WimpyPDFGenerator:
                     if current_y < self.page_style.margins[3] + line_height:
                         self.canvas.showPage()
                         self._draw_page_background()
+                        # re-apply font after the page switch
+                        renderer.set_font(font_name, style.font_size)
                         current_y = self.page_style.height - self.page_style.margins[1] - 15
                     
                     renderer.draw_text_with_effects(line, dialogue_x, current_y, style)
@@ -536,18 +598,22 @@ class WimpyPDFGenerator:
                 if current_y < self.page_style.margins[3] + line_height:
                     self.canvas.showPage()
                     self._draw_page_background()
+                    # re-apply font after the page switch
+                    renderer.set_font(font_name, style.font_size)
                     current_y = self.page_style.height - self.page_style.margins[1] - 15
                 
-                # Draw bullet
-                bullet_style = TextStyle(
-                    font_path=style.font_path,
-                    font_size=style.font_size,
-                    color=style.color,
-                    x_jitter=0.5,
-                    y_jitter=0.3,
-                    rotation_jitter=0.05
-                )
-                renderer.draw_text_with_effects("•", text_x - 15, current_y, bullet_style)
+                # Draw a tiny filled-circle bullet that doesn't depend on font glyphs
+                bullet_radius = style.font_size * 0.15        # ~15 % of text height
+                self.canvas.saveState()
+                r, g, b = [c / 255.0 for c in style.color]     # use same ink colour
+                self.canvas.setFillColorRGB(r, g, b)
+                # Slight vertical tweak so the dot sits on the text baseline nicely
+                self.canvas.circle(text_x - 10,
+                                   current_y + style.font_size * 0.30,
+                                   bullet_radius,
+                                   stroke=0,
+                                   fill=1)
+                self.canvas.restoreState()
                 
                 # Wrap and render list item text
                 wrapped_lines = self._wrap_text(content, font_name, style.font_size, text_width - 25)
@@ -555,6 +621,8 @@ class WimpyPDFGenerator:
                     if current_y < self.page_style.margins[3] + line_height:
                         self.canvas.showPage()
                         self._draw_page_background()
+                        # re-apply font after the page switch
+                        renderer.set_font(font_name, style.font_size)
                         current_y = self.page_style.height - self.page_style.margins[1] - 15
                     
                     x_offset = 25  # Indent list items
@@ -568,6 +636,8 @@ class WimpyPDFGenerator:
                     if current_y < self.page_style.margins[3] + line_height:
                         self.canvas.showPage()
                         self._draw_page_background()
+                        # re-apply font after the page switch
+                        renderer.set_font(font_name, style.font_size)
                         current_y = self.page_style.height - self.page_style.margins[1] - 15
                     
                     renderer.draw_text_with_effects(line, text_x, current_y, style)
