@@ -1,94 +1,160 @@
-# My Secret School Life in Samarkand
+# Hillel's Secret Diary
 
-## Sunday: The Weirdest Rules Ever
+## Sunday, August 23rd
 
-Okay, so my name is Hillel and I'm going to tell you about when I was a kid in this place called Samarkand. It was basically the WEIRDEST time ever.
+My name is Hillel and I'm 8 years old. I live in Samarkand with my family. I'm writing this diary in SECRET because if anyone finds it, we could be in BIG trouble.
 
-Get this - the government (those are the people who make the rules) decided that kids weren't allowed to learn about Yiddishkeit. Like, AT ALL. Can you imagine if someone told you that you couldn't learn Torah or keep mitzvos? That's just crazy, right?
+Here's the thing - I'm not supposed to exist. Well, I mean, I exist, but the neighbors can't know I exist. It's SUPER weird.
 
-But here's the thing - our parents didn't care about those dumb rules. They were like secret agents or something. Except instead of fighting bad guys, they were secretly teaching us Torah.
+My tatty says the government wants all kids to go to their schools where they teach you that Hashem doesn't exist (can you believe that?!). So we have to hide. Like, actually HIDE. IN OUR OWN HOUSE.
 
-## Monday: Mr. Daniel Tells Us Everything
+I can't even go outside during the day. Do you know how boring that is?
 
-So this old guy named Daniel came over to our house today. He looked pretty sad, like when you accidentally step on your little brother's toy and feel really bad about it.
+## Monday, August 24th
 
-My tatty made him some tea (adults LOVE tea for some reason) and then Daniel started talking.
+Today I watched through the curtains as other kids played outside. I wanted to go SO BAD but Mommy said "Not during school hours, Hillel. Someone might see you."
 
-"Kids," he said, "I used to work for the government. I told parents to send their kids to the new schools."
+My older brother Yankel is 12 and he's been hiding even longer than me. He's never been to school AT ALL. He's like a professional hider at this point.
 
-I was like, "That doesn't sound so bad."
+My sister Rivka went to school today. I feel bad for her. She has to sit there and listen to them say crazy things about how there's no Hashem. But Tatty says it's the only way to keep the government people from getting suspicious about us boys.
 
-But then he explained the whole thing. The government totally TRICKED the parents! They said, "Sure, pick your own teachers!" But then they secretly switched all the teachers with their own people. That's like if your mommy said you could pick what's for dinner, but then she secretly replaced your fleishigs with treif. NOT COOL.
+When she comes home, we spend HOURS teaching her real stuff to fix what they put in her head at school.
 
-The worst part? Daniel told us about these super brave kids who wouldn't eat the non-kosher food at school. They just kept their mouths shut tight. No matter what. Those kids were like tiny tzaddikim, if you ask me.
+## Tuesday, August 25th  
 
-Daniel felt really bad about all this stuff. I guess that's what happens when you realize you were on the wrong team.
+Something scary happened today! There was a knock at the door and it WASN'T our special knock!
 
-## Tuesday Night: Our Living Room Becomes Awesome
+Oh yeah, I forgot to tell you about our special knock. It goes like this:
+- Knock knock
+- Wait
+- Knock knock knock  
+- Wait
+- Knock knock
 
-After Daniel left yesterday, my parents got this look. You know the look - like when parents are planning something and they think you don't notice. But I TOTALLY noticed.
+If someone doesn't do it exactly right, we all PANIC. Yankel and I have to run and hide in the back room.
 
-Tonight, things got interesting.
+Anyway, today someone just knocked regular and Mommy's face went WHITE. She whispered "Quick! To the hiding spot!" 
 
-First, Tatty closed all the curtains. Like, REALLY closed them.
+Turns out it was just the mailman. But for like five minutes I thought we were DONE FOR.
 
-Then Mommy checked the hallway about a million times.
+## Wednesday, August 26th
 
-I was thinking, "What is going ON here?"
+Mr. Daniel came over again today. He used the special knock (thank goodness).
 
-Then Tatty pulled out this really old sefer. It smelled like my zeidy's house - you know, that old sefer smell? And he whispered (WHISPERED!), "Tonight, we learn."
+He told us more stories about the old days. He said he used to help the government trick parents into sending their kids to the bad schools. He looked like he wanted to cry when he talked about the kids who wouldn't eat treif even when the teachers tried to force them.
 
-And just like that, our boring living room turned into a SECRET CHEDER. How cool is that?
+"Those children were heroes," he said. "Real heroes."
 
-Sometimes other kids would sneak over too. We had to be super quiet because if the neighbors found out, we'd be in BIG trouble. It was scary but also kind of exciting. Like being in a secret club, but for learning Torah.
+I want to be a hero too. But right now I'm just a kid hiding in my house.
 
-We learned alef-beis and stories about the Avos and niggunim. Mommy taught us melodies that her mother taught her, which her mother taught HER. It was like this chain of Yiddishe mammes teaching kids forever and ever.
+## Thursday, August 27th
 
-## Wednesday: The Scary Guy at the Shul
+You'll never guess what happened today. The school principal sent TEACHERS to walk around the neighborhood looking for kids!
 
-There was only ONE shul left open in our whole city. ONE! There used to be tons of them, but the government closed them all down except this one.
+I saw them through the window. They were knocking on doors and asking people "Do you know if there are any children around here who should be in school?"
 
-And there was this guy there named Chaim who gave everyone the creeps.
+Mrs. Goldberg from next door (she's not Jewish) was outside and one teacher asked her. My heart was beating SO FAST. But she just shrugged and said she didn't know of any.
 
-Whenever visitors came, he'd run up to them super fast and be like, "HI! I'M CHAIM! I'M IN CHARGE HERE! EVERYTHING IS GREAT!"
+Phew. That was close.
 
-But here's the really scary part - my zeidy told me the truth. Chaim was working for the government. He wrote down the names of everyone who came to daven and gave the list to the police. That's why lots of people stayed away - they knew Chaim would report them and they'd lose their jobs. Or worse.
+Mommy says this happens every summer before school starts. They call it "registration." More like "hunting for hidden kids" if you ask me.
 
-It was like having a spy right in the shul. A spy who pretended to be your friend but was actually dangerous.
+## Friday, August 28th - Erev Shabbos
 
-But you know what? The old people like my zeidy still went. He said, "When you're my age, you stop being afraid of their threats and start caring about what really matters."
+Getting ready for Shabbos is tricky when you're hiding. We have to be super careful about everything.
 
-Zeidy was pretty brave.
+Mommy was teaching me and Yankel the parsha today. She said that Yidden have always had to be strong, even when things were hard. "Just like now," she said.
 
-## Thursday: Parent Power
+I asked her how long we have to hide like this. She said, "Until Hashem decides it's time for things to change."
 
-Here's something crazy - EVERY parent became a melamed. They HAD to, because there were no yeshivos allowed.
+I hope it's soon. I really want to play outside.
 
-My tatty would come home super tired from work, but he'd still teach me for half an hour every day. EVERY. SINGLE. DAY. Even when he probably wanted to just rest!
+## Motzei Shabbos, August 29th
 
-"This is more important than anything else," he'd say.
+Tonight after havdalah, Tatty told us we're going to have a secret melameid come teach us! But it has to be SUPER secret. Even more secret than this diary.
 
-I didn't get it then, but I do now. It's like if learning Torah was banned and your parents had to secretly teach you. Oh wait, that's EXACTLY what happened!
+He said when the melamed comes, he'll use our special knock. And we can NEVER tell ANYONE about him. Not even other kids. Even if they're Jewish kids.
 
-Some families had secret melamdim visit. We all had to pretend we didn't know about it. It was like this big secret everyone was in on, but nobody talked about.
+This is getting complicated. I need to remember:
+- Hide from neighbors during school hours
+- Special knock: 2, pause, 3, pause, 2
+- Never talk about our melamed
+- Pretend I don't exist if anyone asks
 
-The coolest part? There were actual SECRET YESHIVOS. Like, hidden yeshivos where kids could learn together. Parents would whisper about where they were. It was like something out of a story, except it was real life.
+Being a Jewish kid in Samarkand is like being a secret agent, except not fun.
 
-## Motzei Shabbos: What I Figured Out
+## Sunday, August 30th
 
-So here's what I learned from all this craziness:
+Bad news. Tatty heard from the other parents that the principal found out about the Friedman kids who weren't in school. Their parents had to send them to stay with relatives in another city! 
 
-1. Sometimes grown-ups make really dumb rules
-2. Parents will do ANYTHING to give their kids a Torah education
-3. Kids can be way braver than anyone thinks
-4. Keeping mitzvos secret is better than not keeping them at all
+Can you imagine? Having to leave your parents just because you don't want to go to a school that teaches lies?
 
-Every time we lit Shabbos candles in secret, every time we learned a new letter of the alef-beis, every time someone kept kosher even when it was hard - that was us winning. We were like quiet soldiers in Hashem's army, keeping Yiddishkeit alive.
+Mommy held me extra tight tonight. I think she's worried.
 
-And you know what the best part is? We DID IT. We kept learning, we kept our traditions, and we didn't let anyone stop us.
+## Monday, August 31st
 
-Take that, weird government rules!
+Our melamed came for the first time today! His name is Reb Mendel and he has the longest beard I've ever seen.
 
-THE END
+He taught us alef-beis with little songs. He whispered the whole time, even though we were inside our own house. When I asked why, he said "The walls have ears in Samarkand."
 
-(Okay, not really the end, because there's way more to the story. But this is enough for now. My hand is tired from writing!)
+That's creepy. Do walls really have ears here? I looked but I didn't see any.
+
+Yankel laughed at me. He said it means people might be listening. Oh.
+
+## Tuesday, September 1st
+
+School started today. Not for me and Yankel - we watched from the window as kids walked by with their backpacks.
+
+Rivka had to go. She looked so sad. Tatty gave her a big hug and whispered something in her ear. Probably reminding her that everything they teach her about no Hashem is sheker (lies).
+
+I'm glad I don't have to go. But also... it would be nice to have friends. Real friends who I could actually play with outside.
+
+## Wednesday, September 2nd
+
+Mommy taught us about how we came to Samarkand today. She said when I was 3, the Nazis came to our city Kharkov and we had to run away. 
+
+I don't remember it, but she said I was SO hungry on the trip and our non-Jewish neighbor wanted to give me food but it wasn't kosher. She said I cried and cried but she didn't let me eat it.
+
+"Even when you were tiny, you kept kosher," she said proudly.
+
+I guess I've always been fighting to be Jewish. Even when I was too little to know it.
+
+## Thursday, September 3rd
+
+CLOSE CALL TODAY!
+
+A teacher came to our door! Not our special knock! Mommy pushed me and Yankel into the back room so fast I almost tripped.
+
+We could hear her at the door: "Hello, I'm from the school. Do you have any children?"
+
+Mommy said, "Just my daughter, she's already enrolled."
+
+"No boys?" the teacher asked.
+
+"No," Mommy lied. 
+
+I held my breath. Yankel put his hand over my mouth just in case.
+
+Finally the teacher left. Mommy didn't let us come out for another ten minutes, just to be safe.
+
+My heart is STILL beating fast.
+
+## Friday, September 4th - Erev Shabbos
+
+Tatty came home early to help prepare for Shabbos. He looked tired. More tired than usual.
+
+He said the government is getting stricter about kids in school. More and more families are having to send their boys away to hide with relatives.
+
+"Will we have to leave?" I asked.
+
+"Im yirtzeh Hashem, no," he said. "But we must be even more careful."
+
+MORE careful? How is that even possible? I already can't leave the house!
+
+Being Jewish here is the hardest thing ever. But Tatty says that's what makes us strong.
+
+I hope he's right.
+
+THE END (of this notebook)
+
+(Mommy got me a new notebook to keep writing. She says it's important to remember these times. But I have to hide this one REALLY well first!)

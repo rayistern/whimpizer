@@ -444,10 +444,14 @@ class WimpyPDFGenerator:
                 print("Warning: Using default notebook background (no single_page.png found)")
             self.page_style = PageStyle(
                 background_image=bg_image,
-                margins=(85, 90, 72, 72)  # Extra left margin for binder holes
+                margins=(85, 90, 15, 72),  # Reduced right margin from 72 to 15
+                text_area_padding=5  # Reduced padding from 10 to 5
             )
         else:
-            self.page_style = PageStyle()
+            self.page_style = PageStyle(
+                margins=(72, 72, 15, 72),  # Reduced right margin for other styles too
+                text_area_padding=5
+            )
         
         # Create canvas
         self.canvas = canvas.Canvas(output_filename, pagesize=(self.page_style.width, self.page_style.height))
@@ -532,7 +536,7 @@ class WimpyPDFGenerator:
         # Calculate text area
         text_x = self.page_style.margins[0] + self.page_style.text_area_padding
         text_width = (self.page_style.width - self.page_style.margins[0] - 
-                     self.page_style.margins[2] - 2 * self.page_style.text_area_padding)
+                     self.page_style.margins[2] - self.page_style.text_area_padding)
         
         current_y = self.page_style.height - self.page_style.margins[1] - 15
         line_height_base = 24  # Match the ruled line spacing
