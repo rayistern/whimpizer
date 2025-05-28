@@ -1,187 +1,176 @@
 # Wimpy Kid Style PDF Generator
 
-Transform your text into a "Diary of a Wimpy Kid" style PDF! This Python script creates PDFs that mimic the handwritten diary format of the popular book series.
+Transform your text into a "Diary of a Wimpy Kid" style PDF!  
+This Python script creates PDFs that mimic the handwritten diary format of the popular book series, using real Wimpy Kid fonts and notebook paper backgrounds.
 
-## 📚 Features
+---
 
-- **Two Style Options**: Choose between simple formatting or advanced ruled-line notebook style
-- **Interactive Input**: Enter your own text or use the provided sample diary entry
-- **Authentic Styling**: Mimics the casual, handwritten diary format of Greg Heffley's journal
-- **Customizable Output**: Easy to modify fonts, spacing, and layout
+## ✨ Features
+
+- **Authentic Wimpy Kid Fonts**: Uses real TTF fonts from the series (WimpyKid, WimpyKidDialogue, WimpyKidCover, etc.)
+- **Notebook Paper Backgrounds**: Supports actual notebook page images with ruled lines
+- **Handwriting Effects**: Realistic text jitter, rotation, and positioning variations
+- **Custom Bullet Points**: Hand-drawn circle bullets (no weird glyphs)
+- **Markdown Parsing**: Headers, bullet/numbered lists, dialogue, and more
+- **Smart Text Wrapping**: Automatically fits text to notebook lines, all the way to the edge
+- **Multiple Page Support**: Seamless page breaks with consistent styling
+- **Resource Management**: Loads fonts and images from a `resources/` folder
+- **Flexible Input**: Supports text/markdown files or interactive input
+
+---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-Make sure you have Python installed on your system, then install the required dependency:
+- Python 3.7+
+- [reportlab](https://pypi.org/project/reportlab/)
+- [Pillow](https://pypi.org/project/Pillow/)
+
+Install dependencies:
+```bash
+pip install reportlab pillow
+```
+
+### Setup
+
+1. Clone or download this script.
+2. Place your fonts and images in a `resources/` folder as shown below.
+
+#### Example `resources/` Structure
+
+```
+resources/
+├── font/
+│   ├── WimpyKid (1).ttf
+│   ├── WimpyKidDialogue (1).ttf
+│   ├── Wimpycoverv2-Regular (1).ttf
+│   ├── Rowley2.ttf
+│   └── Kongtext (2).ttf
+├── Blank Pages/
+│   ├── Single Page.png
+│   └── Double Page.png
+├── Speech Bubbles/
+│   └── BigRound1.png
+├── Logos/
+│   └── ...
+└── Titles/
+    └── ...
+```
+
+---
+
+## 📝 Usage
+
+### Command Line
 
 ```bash
-pip install reportlab
+python wimpy_pdf_generator.py -i input.md -o output.pdf -s notebook
 ```
 
-### Installation
+- `-i, --input` : Input text/markdown file (optional, otherwise interactive)
+- `-o, --output`: Output PDF filename (optional)
+- `-s, --style` : PDF style (`notebook`, `plain`, `journal`, `grid`)
+- `-r, --resources`: Path to resources directory (default: `resources`)
+- `--list-resources`: List available fonts and images
 
-1. Clone or download the script
-2. Save it as `wimpy_pdf_generator.py` (or any name you prefer)
-3. Make it executable (optional):
-   ```bash
-   chmod +x wimpy_pdf_generator.py
-   ```
-
-### Usage
-
-Run the script:
+#### Example: Interactive Mode
 
 ```bash
-python wimpy_pdf_generator.py
+python wimpy_pdf_generator.py -s notebook
+```
+Type or paste your text, then press Ctrl+D (or Ctrl+Z on Windows) to finish.
+
+#### Example: List Resources
+
+```bash
+python wimpy_pdf_generator.py --list-resources
 ```
 
-Follow the interactive prompts:
-1. Enter your text (press Enter twice when finished)
-2. Choose your preferred style:
-   - **Option 1**: Simple Wimpy Style - Clean, formatted text
-   - **Option 2**: Advanced with Ruled Lines - Notebook-style with ruled lines
+---
 
-## 📖 Example Output
+## 📖 Input Format
 
-The script generates PDFs with:
-- Diary-style title headers
-- Handwritten-font appearance
-- Proper paragraph spacing
-- Optional ruled notebook lines
-- Left-aligned text for natural diary flow
+Supports basic markdown:
 
-## 🎨 Styling Options
+```markdown
+# My Secret School Life in Samarkand
 
-### Simple Style
-- Clean paragraph formatting
-- Wimpy Kid-inspired fonts
-- Proper margins and spacing
-- Title header
+## Sunday: The Weirdest Rules Ever
 
-### Advanced Style
-- All simple style features
-- Ruled notebook lines (blue)
-- Handwritten positioning variations
-- Multi-page support with consistent formatting
+Okay, so my name is Hillel and I'm going to tell you about...
 
-## 📝 Sample Text
+- Bullet points work!
+- No weird glyphs for bullets
 
-If you don't provide input, the script uses a sample diary entry:
+1. Numbered lists too
+2. All in handwriting
 
+"Dialogue is indented and uses a different font."
 ```
-Dear Diary,
 
-Today was totally crazy! I woke up late because my alarm clock didn't go off...
-```
+---
+
+## 🎨 Styling & Fonts
+
+- **Body text**: `WimpyKid (1).ttf`
+- **Dialogue**: `WimpyKidDialogue (1).ttf`
+- **Titles/Headers**: `Wimpycoverv2-Regular (1).ttf`
+- **Bullets**: Drawn as filled circles (not a font glyph)
+- **Text Effects**: Jitter, rotation, and ink-like color
+
+**Text now extends all the way to the right edge of the lines** (minimal right margin).
+
+---
 
 ## 🛠️ Customization
 
-You can easily modify the script to:
-- Change fonts (line 45-65)
-- Adjust colors (import `colors` from `reportlab.lib.colors`)
-- Modify spacing and margins
-- Add drawings or doodles
-- Change page size
+- Add your own TTF fonts to `resources/font/`
+- Add or swap notebook backgrounds in `resources/Blank Pages/`
+- Adjust margins and padding in the code for different layouts
 
-### Font Customization Example
-
-```python
-# In the wimpy_style definition
-fontName='Comic Sans MS',  # If available on your system
-fontSize=11,
-textColor=blue,
-```
-
-### Adding Doodles
-
-```python
-# In the advanced canvas class
-def add_doodle(self, x, y):
-    self.canvas.circle(x, y, 10)  # Simple circle doodle
-```
-
-## 📁 Output Files
-
-- **Default filename**: `wimpy_style_output.pdf` (simple) or `advanced_wimpy_style.pdf` (advanced)
-- **Location**: Same directory as the script
-- **Format**: Standard PDF, compatible with all PDF readers
+---
 
 ## 🐛 Troubleshooting
 
-### Common Issues
+- **Fonts not working?**  
+  Make sure you have TTF (not OTF) fonts in `resources/font/`.  
+  OTF fonts with PostScript outlines are not supported by ReportLab.
 
-**ImportError: No module named 'reportlab'**
-```bash
-pip install reportlab
-```
+- **No background image?**  
+  Place `Single Page.png` in `resources/Blank Pages/`.
 
-**Permission Error when saving PDF**
-- Make sure the output directory is writable
-- Close any open PDF files with the same name
+- **Text doesn't reach the edge?**  
+  The right margin is now minimal (15pt). Adjust in code if needed.
 
-**Text appears cut off**
-- The script automatically wraps long lines
-- For very long text, consider breaking into multiple paragraphs
+- **Weird bullet character?**  
+  Fixed! Bullets are now drawn as circles, not font glyphs.
 
-## 🔧 Advanced Usage
-
-### Programmatic Usage
-
-You can also use the functions directly in your own code:
-
-```python
-from wimpy_pdf_generator import create_wimpy_style_pdf
-
-text = "Your diary entry here..."
-create_wimpy_style_pdf(text, "my_diary.pdf")
-```
-
-### Batch Processing
-
-Create multiple PDFs from a list of texts:
-
-```python
-texts = ["Entry 1...", "Entry 2...", "Entry 3..."]
-for i, text in enumerate(texts):
-    create_wimpy_style_pdf(text, f"diary_entry_{i+1}.pdf")
-```
+---
 
 ## 📋 Requirements
 
-- Python 3.6+
-- reportlab library
-- Operating System: Windows, macOS, or Linux
+- Python 3.7+
+- reportlab
+- Pillow
+
+---
 
 ## 🤝 Contributing
 
-Feel free to fork this project and submit pull requests for:
-- Additional font options
-- New styling features
-- Drawing/doodle capabilities
-- Better handwriting simulation
-- Mobile-friendly versions
+Pull requests welcome!  
+Ideas for improvement:
+- More markdown features
+- More notebook backgrounds
+- Doodle/drawing support
+- Speech bubble overlays
+
+---
 
 ## 📄 License
 
-This project is open source. Feel free to use, modify, and distribute as needed.
-
-## 🎯 Future Enhancements
-
-Planned features:
-- [ ] Multiple font options for different handwriting styles
-- [ ] Drawing tools for simple doodles and sketches
-- [ ] Template system for different diary layouts
-- [ ] Image insertion capabilities
-- [ ] Comic-style speech bubbles
-- [ ] Margin notes and annotations
-
-## 💡 Tips
-
-- Keep paragraphs reasonably short for the best diary-like appearance
-- Use casual, conversational language
-- Consider adding dates to your entries
-- Experiment with both styles to see which you prefer
+This project is for educational and personal use.  
+Wimpy Kid fonts and artwork are property of their respective copyright holders.
 
 ---
 

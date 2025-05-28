@@ -444,12 +444,12 @@ class WimpyPDFGenerator:
                 print("Warning: Using default notebook background (no single_page.png found)")
             self.page_style = PageStyle(
                 background_image=bg_image,
-                margins=(85, 90, 15, 72),  # Reduced right margin from 72 to 15
-                text_area_padding=5  # Reduced padding from 10 to 5
+                margins=(85, 78, 15, 60),  # Reduced top from 90→78, bottom from 72→60
+                text_area_padding=5
             )
         else:
             self.page_style = PageStyle(
-                margins=(72, 72, 15, 72),  # Reduced right margin for other styles too
+                margins=(72, 60, 15, 60),  # Reduced top from 72→60, bottom from 72→60
                 text_area_padding=5
             )
         
@@ -655,18 +655,30 @@ class WimpyPDFGenerator:
         if not text.strip():
             return ['']
         
-        # Estimate character width (Wimpy Kid fonts tend to be wider)
-        avg_char_width = font_size * 0.7
+        # Estimate character width (Wimpy Kid fonts are actually narrower than estimated)
+        avg_char_width = font_size * 0.5  # Reduced from 0.7 to 0.5
         chars_per_line = int(max_width / avg_char_width)
         
-        # Use textwrap for basic wrapping
+        # Use textwrap for basic wrapping, but be more aggressive
         wrapper = textwrap.TextWrapper(
-            width=max(chars_per_line, 15),  # Minimum 15 characters
+            width=max(chars_per_line, 25),  # Increased minimum from 15 to 25
             break_long_words=True,
-            break_on_hyphens=True
+            break_on_hyphens=True,
+            expand_tabs=True,
+            replace_whitespace=True,
+            drop_whitespace=True
         )
         
-        return wrapper.wrap(text)
+        wrapped = wrapper.wrap(text)
+        
+        # If we still get very short lines, try to be even more aggressive
+        if wrapped and len(wrapped[0]) < 30 and len(text) > 40:
+            # Try with even more characters per line
+            chars_per_line = int(max_width / (font_size * 0.4))
+            wrapper.width = max(chars_per_line, 35)
+            wrapped = wrapper.wrap(text)
+        
+        return wrapped if wrapped else ['']
 
 
 def read_file_content(file_path: str) -> Optional[str]:

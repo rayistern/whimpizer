@@ -2,159 +2,202 @@
 
 ## Sunday, August 23rd
 
-My name is Hillel and I'm 8 years old. I live in Samarkand with my family. I'm writing this diary in SECRET because if anyone finds it, we could be in BIG trouble.
+My name is Hillel and I'm 8 years old. I live in Samarkand with my family. I'm writing this diary in SECRET because if anyone finds it, I'm DOOMED.
 
-Here's the thing - I'm not supposed to exist. Well, I mean, I exist, but the neighbors can't know I exist. It's SUPER weird.
+OK so here's the deal. I'm not supposed to exist. I mean, I DO exist (duh), but the neighbors can't know I exist. 
 
-My tatty says the government wants all kids to go to their schools where they teach you that Hashem doesn't exist (can you believe that?!). So we have to hide. Like, actually HIDE. IN OUR OWN HOUSE.
+Why? Because apparently the government has this GENIUS idea that all kids have to go to their dumb schools where they teach you that Hashem doesn't exist. Which is like teaching kids that candy doesn't exist. WHILE EATING CANDY. It makes no sense!
 
-I can't even go outside during the day. Do you know how boring that is?
+So basically I'm under house arrest. Except I didn't even do anything wrong! I just exist! 
+
+This is SO unfair. On the unfairness scale, this is like a 47 out of 10. It's worse than when Yankel gets the bigger piece of challah. It's worse than having to go to bed early. It's even worse than eating cold cholent.
 
 ## Monday, August 24th
 
-Today I watched through the curtains as other kids played outside. I wanted to go SO BAD but Mommy said "Not during school hours, Hillel. Someone might see you."
+You know what's the WORST? Watching other kids play outside through the curtains while you're stuck inside like some kind of prisoner.
 
-My older brother Yankel is 12 and he's been hiding even longer than me. He's never been to school AT ALL. He's like a professional hider at this point.
+Today I saw the Goldberg kids (not Jewish) playing with a ball and it bounced RIGHT near our window. I wanted to open it and throw it back SO BAD. But NOOOO. Someone might see me and then boom - government people show up.
 
-My sister Rivka went to school today. I feel bad for her. She has to sit there and listen to them say crazy things about how there's no Hashem. But Tatty says it's the only way to keep the government people from getting suspicious about us boys.
+I've been thinking though - what if I made a disguise? Like a really big coat and a fake mustache? Then I could pretend to be a short adult! Genius, right? But Mommy said no. She didn't even think about it! Adults have no imagination.
 
-When she comes home, we spend HOURS teaching her real stuff to fix what they put in her head at school.
+My older brother Yankel thinks he's SO cool because he's 12 and has been hiding longer. He calls himself a "professional hider." 
+
+Professional hider. That's not even a real job, Yankel! (Although I'm getting pretty good at it too. Yesterday I hid behind the curtain for 20 minutes and nobody even knew. I'm basically a hiding champion.)
+
+My sister Rivka had to go to school today. I kind of feel bad for her but also she gets to GO OUTSIDE so really who's the winner here?
 
 ## Tuesday, August 25th  
 
-Something scary happened today! There was a knock at the door and it WASN'T our special knock!
+OK so I almost gave us away today and it wasn't even my fault!
 
-Oh yeah, I forgot to tell you about our special knock. It goes like this:
+We have this special knock so we know it's safe. It goes:
 - Knock knock
-- Wait
+- Wait (count to 3 in your head)
 - Knock knock knock  
-- Wait
+- Wait (count to 3 again)
 - Knock knock
 
-If someone doesn't do it exactly right, we all PANIC. Yankel and I have to run and hide in the back room.
+If you mess it up, everyone FREAKS OUT.
 
-Anyway, today someone just knocked regular and Mommy's face went WHITE. She whispered "Quick! To the hiding spot!" 
+So today someone knocked regular and I was right by the door eating an apple and I almost opened it! Mommy DOVE across the room and grabbed my hand. I dropped my apple and it rolled under the couch. 
 
-Turns out it was just the mailman. But for like five minutes I thought we were DONE FOR.
+It was just the mailman. But now my apple is gross and fuzzy. Thanks a lot, mailman.
+
+Also Yankel said I almost got us all sent to Siberia. I don't even know where that is but it sounds cold.
 
 ## Wednesday, August 26th
 
-Mr. Daniel came over again today. He used the special knock (thank goodness).
+Mr. Daniel came over today. He DID the special knock right (unlike SOME PEOPLE, mailman).
 
-He told us more stories about the old days. He said he used to help the government trick parents into sending their kids to the bad schools. He looked like he wanted to cry when he talked about the kids who wouldn't eat treif even when the teachers tried to force them.
+He's this old guy who tells the WORST stories. Like, today he told us about how he used to trick parents into sending their kids to the government schools. And then he started getting all emotional about kids who wouldn't eat treif.
 
-"Those children were heroes," he said. "Real heroes."
+He was like "Those children were heroes!" and his eyes got all watery.
 
-I want to be a hero too. But right now I'm just a kid hiding in my house.
+Great. Now I feel bad for complaining about being stuck inside. But also... I'M STILL STUCK INSIDE. Those kids got to be heroes. I just get to be bored. Unfairness rating: 9 out of 10.
+
+Later I heard Tatty tell Mommy that Daniel said something about "the walls closing in." Are our walls moving?! I checked mine. They seem the same distance apart as yesterday. Adults are so dramatic.
 
 ## Thursday, August 27th
 
-You'll never guess what happened today. The school principal sent TEACHERS to walk around the neighborhood looking for kids!
+THIS IS NOT A DRILL. TEACHERS ARE HUNTING FOR KIDS.
 
-I saw them through the window. They were knocking on doors and asking people "Do you know if there are any children around here who should be in school?"
+I'm not even joking! They're walking around with clipboards asking people "Do you know any kids who should be in school?"
 
-Mrs. Goldberg from next door (she's not Jewish) was outside and one teacher asked her. My heart was beating SO FAST. But she just shrugged and said she didn't know of any.
+It's like they're the child-catcher from that story, except REAL and OUTSIDE MY HOUSE.
 
-Phew. That was close.
+I watched from behind the curtain (I'm getting really good at curtain-watching). One teacher asked Mrs. Goldberg next door and my heart was beating so hard I thought she could probably HEAR it. 
 
-Mommy says this happens every summer before school starts. They call it "registration." More like "hunting for hidden kids" if you ask me.
+But Mrs. Goldberg just shrugged. PHEW.
+
+Yankel says this happens every year. They call it "registration" but I call it "Hunting Season for Hidden Kids."
 
 ## Friday, August 28th - Erev Shabbos
 
-Getting ready for Shabbos is tricky when you're hiding. We have to be super careful about everything.
+Getting ready for Shabbos when you're in hiding is like trying to play freeze dance but the music NEVER comes back on.
 
-Mommy was teaching me and Yankel the parsha today. She said that Yidden have always had to be strong, even when things were hard. "Just like now," she said.
+Today Mommy was teaching us the parsha and I wasn't really listening (sorry Mommy) because I was thinking about how badly I wanted to go outside and ride a bike. Do you know how long it's been since I rode a bike? FOREVER.
 
-I asked her how long we have to hide like this. She said, "Until Hashem decides it's time for things to change."
+"Hillel, are you paying attention?" Mommy asked.
 
-I hope it's soon. I really want to play outside.
+"Yes," I lied.
+
+"What did I just say?"
+
+Uh oh.
+
+"Um... something about... being strong?"
+
+She sighed. "Yes, Hillel. Yidden have always had to be strong."
+
+Lucky guess!
 
 ## Motzei Shabbos, August 29th
 
-Tonight after havdalah, Tatty told us we're going to have a secret melameid come teach us! But it has to be SUPER secret. Even more secret than this diary.
+Tatty has BIG NEWS. We're getting a secret melamed!
 
-He said when the melamed comes, he'll use our special knock. And we can NEVER tell ANYONE about him. Not even other kids. Even if they're Jewish kids.
+But here's like 47 rules about it:
+1. He'll use the special knock
+2. We can NEVER tell ANYONE
+3. Not even other Jewish kids
+4. Not even if they're our best friends
+5. Not even if they bribe us with candy
 
-This is getting complicated. I need to remember:
-- Hide from neighbors during school hours
-- Special knock: 2, pause, 3, pause, 2
-- Never talk about our melamed
-- Pretend I don't exist if anyone asks
+I don't even HAVE any best friends because I CAN'T LEAVE THE HOUSE.
 
-Being a Jewish kid in Samarkand is like being a secret agent, except not fun.
+This whole situation is getting ridiculous. I need a chart just to remember all the things I'm not supposed to do.
 
 ## Sunday, August 30th
 
-Bad news. Tatty heard from the other parents that the principal found out about the Friedman kids who weren't in school. Their parents had to send them to stay with relatives in another city! 
+Remember the Friedman kids? They got CAUGHT not being in school.
 
-Can you imagine? Having to leave your parents just because you don't want to go to a school that teaches lies?
+You know what happened? Their parents had to send them to live with relatives IN ANOTHER CITY. Like, their parents were just like "Bye kids, go live somewhere else now!"
 
-Mommy held me extra tight tonight. I think she's worried.
+That's terrifying! What if that happens to us? What if I have to go live with Tante Miriam? She smells like pickles and pinches cheeks!
+
+Mommy hugged me extra long tonight. I think she's worried too. But at least her hugs don't smell like pickles.
 
 ## Monday, August 31st
 
-Our melamed came for the first time today! His name is Reb Mendel and he has the longest beard I've ever seen.
+Our melamed came today! His name is Reb Mendel and his beard is so long I bet he could trip on it. (I didn't say that out loud though.)
 
-He taught us alef-beis with little songs. He whispered the whole time, even though we were inside our own house. When I asked why, he said "The walls have ears in Samarkand."
+He whispered THE ENTIRE TIME. Like, we're inside our own house! I whispered back "Why are we whispering?"
 
-That's creepy. Do walls really have ears here? I looked but I didn't see any.
+He said "The walls have ears in Samarkand."
 
-Yankel laughed at me. He said it means people might be listening. Oh.
+WHAT?! I spent the next ten minutes staring at the walls looking for ears. I didn't see any.
+
+Yankel laughed so hard he snorted. "It means people might be listening, dummy!"
+
+Oh. That makes more sense. But also, rude, Yankel.
+
+The cool part though? Learning in whispers makes everything feel like a secret mission. We're like Torah spies or something. That's actually pretty awesome. This might be the ONE good thing about hiding - everything feels way more important when it's secret.
 
 ## Tuesday, September 1st
 
-School started today. Not for me and Yankel - we watched from the window as kids walked by with their backpacks.
+First day of school! Not for me though. Obviously.
 
-Rivka had to go. She looked so sad. Tatty gave her a big hug and whispered something in her ear. Probably reminding her that everything they teach her about no Hashem is sheker (lies).
+Rivka had to go and she looked like she was going to her own execution. Tatty gave her a hug and whispered something. Probably "Remember everything they say about Hashem is total nonsense."
 
-I'm glad I don't have to go. But also... it would be nice to have friends. Real friends who I could actually play with outside.
+I watched all the kids walking by with their backpacks and lunch boxes. One kid dropped his apple and it rolled into the street. He just picked it up and kept eating it! GROSS! But also... at least he CAN eat his apple in the street. Unlike SOME people who are stuck inside.
+
+I'm not bitter. OK maybe a little bitter.
 
 ## Wednesday, September 2nd
 
-Mommy taught us about how we came to Samarkand today. She said when I was 3, the Nazis came to our city Kharkov and we had to run away. 
+Mommy told us the story of how we came to Samarkand today. Apparently when I was 3, we had to run away from Nazis. 
 
-I don't remember it, but she said I was SO hungry on the trip and our non-Jewish neighbor wanted to give me food but it wasn't kosher. She said I cried and cried but she didn't let me eat it.
+She said I was SO hungry and this not-Jewish neighbor tried to give me food but it wasn't kosher. And I cried and cried but Mommy didn't let me eat it.
 
-"Even when you were tiny, you kept kosher," she said proudly.
+"Even as a baby, you kept kosher!" she said all proud.
 
-I guess I've always been fighting to be Jewish. Even when I was too little to know it.
+Great. So I've been suffering for food my WHOLE LIFE. This explains so much.
 
 ## Thursday, September 3rd
 
-CLOSE CALL TODAY!
+TODAY WAS INSANE.
 
-A teacher came to our door! Not our special knock! Mommy pushed me and Yankel into the back room so fast I almost tripped.
+A teacher came to our door! And she did NOT know the special knock!
 
-We could hear her at the door: "Hello, I'm from the school. Do you have any children?"
+Mommy grabbed me and Yankel and basically THREW us into the back room. I crashed into Yankel and we both fell over. My elbow still hurts.
 
-Mommy said, "Just my daughter, she's already enrolled."
+We could hear everything:
+Teacher: "Hello, I'm from the school. Do you have any children?"
+Mommy: "Just my daughter."
+Teacher: "No boys?"
+Mommy: "No."
 
-"No boys?" the teacher asked.
+Yankel put his hand over my mouth which was gross because his hands smelled like herring. I couldn't even complain because then the teacher would hear me!
 
-"No," Mommy lied. 
+Finally she left. We stayed hidden for another MILLION YEARS (OK, ten minutes) just to be safe.
 
-I held my breath. Yankel put his hand over my mouth just in case.
-
-Finally the teacher left. Mommy didn't let us come out for another ten minutes, just to be safe.
-
-My heart is STILL beating fast.
+My heart was beating so fast I thought it might explode. Is this what being a spy feels like? Because I don't like it.
 
 ## Friday, September 4th - Erev Shabbos
 
-Tatty came home early to help prepare for Shabbos. He looked tired. More tired than usual.
+Tatty came home early and he looked more tired than that time I made him play horsey for an hour straight.
 
-He said the government is getting stricter about kids in school. More and more families are having to send their boys away to hide with relatives.
+He said MORE families are having to send their kids away. It's getting worse.
 
 "Will we have to leave?" I asked.
 
-"Im yirtzeh Hashem, no," he said. "But we must be even more careful."
+"Im yirtzeh Hashem, no," he said.
 
-MORE careful? How is that even possible? I already can't leave the house!
+Then he said we need to be EVEN MORE CAREFUL.
 
-Being Jewish here is the hardest thing ever. But Tatty says that's what makes us strong.
+More careful?! What's next, are we going to have to turn invisible? Because that would actually be cool. But also impossible. I checked.
 
-I hope he's right.
+Actually, I have a new plan. What if we dig a tunnel from our house to the shul? Then we could go places underground like moles! I drew a map and everything. Tatty said "Maybe when you're older." That's adult code for "never." 
+
+Later I heard Tatty tell Mommy something about "the net is tightening." Are they fishing for kids now? With actual nets? That's terrifying but also kind of silly. How big would the net need to be?
+
+This is my life now. Other kids worry about tests and homework. I worry about existing too loudly. Unfairness level: 11 out of 10.
+
+Being a Jewish kid in Samarkand is like playing the world's worst game of hide and seek where:
+1. You're always hiding
+2. You can never be found
+3. There's no winning
+4. And the seekers work for the government
 
 THE END (of this notebook)
 
-(Mommy got me a new notebook to keep writing. She says it's important to remember these times. But I have to hide this one REALLY well first!)
+P.S. - Mommy got me a new notebook but I have to hide this one first. I'm thinking under the mattress? No, too obvious. Behind the books? Maybe. Being a professional hider is harder than Yankel makes it look.
