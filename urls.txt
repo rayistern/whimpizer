@@ -1,0 +1,9 @@
+# Sample URLs file
+# One URL per line, lines starting with # are ignored
+
+https://www.chabad.org/library/article_cdo/aid/2828044/jewish/Living-Under-Communism.htm
+https://www.chabad.org/library/article_cdo/aid/2828045/jewish/First-Mission-Hide-the-Children-From-the-Neighbors.htm
+https://www.chabad.org/library/article_cdo/aid/2828046/jewish/Faux-Pas-in-Music-Class.htm
+
+# Add more URLs below
+# https://example.com/another-article 

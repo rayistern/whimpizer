@@ -1,0 +1,2 @@
+# This file ensures the downloaded_content directory is tracked by git
+# even when it's empty or all other contents are ignored 

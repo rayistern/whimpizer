@@ -1,0 +1,18 @@
+# Ignore all contents of downloaded_content folder
+downloaded_content/*
+
+# But keep the folder itself (this .gitkeep file will be created)
+!downloaded_content/.gitkeep
+
+# Ignore all contents of whimperized_content folder
+whimperized_content/*
+
+# But keep the folder itself
+!whimperized_content/.gitkeep
+
+# Environment files
+.env
+
+# Log files
+logs/
+*.log 
