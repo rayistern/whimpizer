@@ -97,6 +97,6 @@
   },
   {
     "role": "user",
-    "content": "My kid gave me critique:\nReal Whimpy kid has one coherent storyline, whereas ours is a collection of short stories. \nOtherwise he loves it!\nHere's a full section of the book, does this give you more context to make that call? Let's work with this section next:\n"
+    "content": "My kid gave me critique:\nReal Whimpy kid has one coherent storyline, whereas ours is a collection of short stories. \nOtherwise he loves it!\nHere's a full section of the book, does this give you more context to make that call? Let's work with this section next, and please generate a full Whimpy Kid rendition off of this text now!\nHere's what I'd ask you to do: Pick **one central goal or challenge**\nStructure the diary entries as a **progression of steps** or **adventures** the kid takes toward that goal, with each entry adding a new twist, scheme, or funny mishap.\nAnd then just output the actual text of our next version, the entire text, with no pros. THANK YOU"
   }
 ]
