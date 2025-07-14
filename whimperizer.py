@@ -102,22 +102,37 @@ class OpenAIProvider(AIProvider):
             # Log request details
             self.api_logger.info("=== OpenAI API Request ===")
             self.api_logger.info(f"Model: {self.config['model']}")
-            self.api_logger.info(f"Max tokens: {self.config['max_tokens']}")
-            self.api_logger.info(f"Temperature: {self.config['temperature']}")
+            self.api_logger.info(f"Max tokens: {self.config.get('max_tokens', 'Not specified')}")
+            self.api_logger.info(f"Temperature: {self.config.get('temperature', 'Not specified')}")
             self.api_logger.info(f"Number of messages: {len(messages)}")
             
-            # Log message details (truncated for readability)
+            # Log message details (FULL content for debugging)
             for i, msg in enumerate(messages):
-                content_preview = msg['content'][:200] + "..." if len(msg['content']) > 200 else msg['content']
-                self.api_logger.debug(f"Message {i+1} ({msg['role']}): {content_preview}")
+                self.api_logger.debug(f"Message {i+1} ({msg['role']}): {msg['content']}")
             
-            # Make API call
-            response = self.client.chat.completions.create(
-                model=self.config['model'],
-                messages=messages,
-                max_tokens=self.config['max_tokens'],
-                temperature=self.config['temperature']
-            )
+            # Make API call - handle different model parameter requirements
+            api_params = {
+                'model': self.config['model'],
+                'messages': messages,
+            }
+            
+            # Only add temperature for non-reasoning models
+            model_name = self.config['model'].lower()
+            is_reasoning_model = any(x in model_name for x in ['o1-preview', 'o1-mini', 'o1', 'o4-mini'])
+            
+            if not is_reasoning_model:
+                api_params['temperature'] = self.config['temperature']
+            
+            # Add max_tokens only if specified in config and not a reasoning model
+            if self.config.get('max_tokens') and not is_reasoning_model:
+                api_params['max_tokens'] = self.config['max_tokens']
+            elif self.config.get('max_tokens') and is_reasoning_model:
+                # Reasoning models use max_completion_tokens
+                api_params['max_completion_tokens'] = self.config['max_tokens']
+            
+            self.api_logger.info(f"API parameters for {model_name}: {list(api_params.keys())}")
+            
+            response = self.client.chat.completions.create(**api_params)
             
             # Log response details
             self.api_logger.info("=== OpenAI API Response ===")
@@ -143,15 +158,66 @@ class OpenAIProvider(AIProvider):
                 total_cost = prompt_cost + completion_cost
                 self.api_logger.info(f"Estimated cost: ${total_cost:.6f}")
             
-            # Log response content (truncated)
+            # Log response content (FULL content for debugging)
             response_content = response.choices[0].message.content
-            content_preview = response_content[:500] + "..." if len(response_content) > 500 else response_content
-            self.api_logger.debug(f"Response content: {content_preview}")
+            self.api_logger.debug(f"Response content: {response_content}")
             
             return response_content
             
         except Exception as e:
-            self.api_logger.error(f"OpenAI API error: {e}")
+            error_msg = f"OpenAI API error: {e}"
+            self.api_logger.error(error_msg)
+            
+            # Print full error details to console
+            print(f"\n❌ OpenAI API Error:")
+            print(f"   {str(e)}")
+            
+            # Try to extract and display structured error details
+            error_details = None
+            if hasattr(e, 'response') and hasattr(e.response, 'json'):
+                try:
+                    error_details = e.response.json()
+                except:
+                    pass
+            elif hasattr(e, 'body'):
+                try:
+                    import json
+                    error_details = json.loads(e.body) if isinstance(e.body, str) else e.body
+                except:
+                    error_details = {"body": str(e.body)}
+            
+            if error_details:
+                print(f"\n   📋 Full Error Details:")
+                if isinstance(error_details, dict) and 'error' in error_details:
+                    error_info = error_details['error']
+                    print(f"      • Message: {error_info.get('message', 'N/A')}")
+                    print(f"      • Type: {error_info.get('type', 'N/A')}")
+                    print(f"      • Code: {error_info.get('code', 'N/A')}")
+                    if 'param' in error_info:
+                        print(f"      • Parameter: {error_info['param']}")
+                else:
+                    print(f"      {error_details}")
+                self.api_logger.error(f"API Error details: {error_details}")
+            
+            # Provide specific guidance for common errors
+            error_str = str(e).lower()
+            if 'max_tokens' in error_str and 'max_completion_tokens' in error_str:
+                print(f"\n   💡 Suggestion: This looks like a reasoning model (o1-series). Try:")
+                print(f"      1. Set model to 'gpt-4-turbo' or 'gpt-3.5-turbo' in config.yaml")
+                print(f"      2. Or remove 'max_tokens' from config.yaml if not needed")
+            elif 'temperature' in error_str and 'does not support' in error_str:
+                print(f"\n   💡 Suggestion: This reasoning model doesn't support custom temperature. Try:")
+                print(f"      1. Remove or comment out 'temperature' line in config.yaml")
+                print(f"      2. Or change model to 'gpt-4-turbo' which supports temperature")
+            elif 'context length' in error_str:
+                print(f"\n   💡 Suggestion: Content too large for model context. Try:")
+                print(f"      1. Use 'gpt-4-turbo' model (128K context)")
+                print(f"      2. Or split into smaller groups")
+            elif 'api key' in error_str:
+                print(f"\n   💡 Suggestion: Check your API key in .env file")
+            elif 'rate limit' in error_str:
+                print(f"\n   💡 Suggestion: You've hit API rate limits, wait a moment and try again")
+            
             return None
 
 class AnthropicProvider(AIProvider):
@@ -226,7 +292,23 @@ class AnthropicProvider(AIProvider):
             return response_content
             
         except Exception as e:
-            self.api_logger.error(f"Anthropic API error: {e}")
+            error_msg = f"Anthropic API error: {e}"
+            self.api_logger.error(error_msg)
+            # Also log to console for immediate visibility
+            print(f"\n❌ {error_msg}")
+            
+            # If it's an Anthropic API error, try to extract more details
+            if hasattr(e, 'response') and hasattr(e.response, 'json'):
+                try:
+                    error_details = e.response.json()
+                    print(f"   Error details: {error_details}")
+                    self.api_logger.error(f"API Error details: {error_details}")
+                except:
+                    pass
+            elif hasattr(e, 'body'):
+                print(f"   Error body: {e.body}")
+                self.api_logger.error(f"API Error body: {e.body}")
+            
             return None
 
 class GoogleProvider(AIProvider):
@@ -301,7 +383,23 @@ class GoogleProvider(AIProvider):
             return response_content
             
         except Exception as e:
-            self.api_logger.error(f"Google API error: {e}")
+            error_msg = f"Google API error: {e}"
+            self.api_logger.error(error_msg)
+            # Also log to console for immediate visibility
+            print(f"\n❌ {error_msg}")
+            
+            # If it's a Google API error, try to extract more details
+            if hasattr(e, 'response') and hasattr(e.response, 'json'):
+                try:
+                    error_details = e.response.json()
+                    print(f"   Error details: {error_details}")
+                    self.api_logger.error(f"API Error details: {error_details}")
+                except:
+                    pass
+            elif hasattr(e, 'details'):
+                print(f"   Error details: {e.details}")
+                self.api_logger.error(f"API Error details: {e.details}")
+            
             return None
 
 class Whimperizer:
@@ -431,10 +529,15 @@ class Whimperizer:
         """Combine content from all files in a group"""
         combined_content = []
         
-        for file_info in group_files:
+        logger.info(f"Combining {len(group_files)} files:")
+        for i, file_info in enumerate(group_files, 1):
+            logger.info(f"  {i}. {file_info['filename']}")
             content = self.read_file_content(file_info['path'])
             if content:
                 combined_content.append(f"=== File: {file_info['filename']} ===\n{content}\n")
+        
+        total_chars = sum(len(section) for section in combined_content)
+        logger.info(f"Combined content: {len(combined_content)} sections, {total_chars:,} characters")
         
         return "\n".join(combined_content)
     
@@ -447,12 +550,22 @@ class Whimperizer:
             if isinstance(self.conversation_history, list):
                 # JSON format - use conversation history + new content
                 messages = self.conversation_history.copy()
-                new_message = f"Ok! Here's the next batch of whimperizer files!\n\n{content}"
+                new_message = f"""Ok fine. So here's a full chapter from the book; let's try with this, please generate a full Whimpy Kid rendition off of this text now! Here are those files of chapter 1 of the original Hillel diary (the version for grown ups). Output just the Whimpy version now!
+
+{content}"""
                 messages.append({
                     "role": "user",
                     "content": new_message
                 })
                 logger.debug(f"Using conversation history with {len(self.conversation_history)} messages")
+                
+                # DEBUG: Show what we're actually sending
+                print(f"\n🔍 DEBUG: Final message being sent to AI:")
+                print(f"   Last message length: {len(new_message):,} characters")
+                print(f"   First 1000 chars of combined content:")
+                print(content[:1000])
+                print(f"   Last 500 chars of combined content:")
+                print(content[-500:])
             else:
                 # Legacy plain text format
                 full_content = f"{self.conversation_history}\n\n{content}"
@@ -483,8 +596,11 @@ class Whimperizer:
     
     def save_output(self, group_key, content):
         """Save the whimperized content to output file"""
+        from datetime import datetime
+        
         output_dir = Path(self.config['processing']['output_dir'])
-        output_file = output_dir / f"{group_key}-whimperized.txt"
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_file = output_dir / f"{group_key}-whimperized-{timestamp}.md"
         
         try:
             with open(output_file, 'w', encoding='utf-8') as f:
@@ -508,11 +624,17 @@ class Whimperizer:
         
         # Call AI API to whimperize
         logger.info(f"Calling {self.provider_name} API for group {group_key}...")
+        print(f"🤖 Calling {self.provider_name} API for group {group_key}...")
+        
         whimperized_content = self.call_ai_api(combined_content)
         
         if not whimperized_content:
-            logger.error(f"Failed to whimperize group {group_key}")
+            error_msg = f"Failed to whimperize group {group_key}"
+            logger.error(error_msg)
+            # Error details already shown by AI provider
             return False
+        
+        print(f"✅ Successfully whimperized group {group_key} ({len(whimperized_content):,} characters)")
         
         # Save output
         return self.save_output(group_key, whimperized_content)
@@ -547,11 +669,20 @@ class Whimperizer:
         successful = 0
         total = len(grouped_files)
         
+        print(f"\n📁 Processing {total} group(s) with {self.provider_name}:")
+        
         for group_key, group_files in grouped_files.items():
             if self.process_group(group_key, group_files):
                 successful += 1
         
+        # Final summary
         logger.info(f"Processing complete: {successful}/{total} groups successful")
+        print(f"\n🎯 Processing complete: {successful}/{total} groups successful")
+        
+        if successful < total:
+            print(f"⚠️  {total - successful} group(s) failed - see error details above")
+        elif successful > 0:
+            print(f"✨ All groups processed successfully! Check whimperized_content/ for output files")
 
 def main():
     parser = argparse.ArgumentParser(description='Whimperize downloaded content into children\'s stories')

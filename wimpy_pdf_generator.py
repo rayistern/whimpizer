@@ -377,7 +377,7 @@ class WimpyPDFGenerator:
                 font_path=body_font,
                 font_size=12,
                 color=(25, 25, 35),  # Slightly blue-black like ink
-                line_spacing=1.2,
+                line_spacing=1.35,
                 x_jitter=1.2,
                 y_jitter=0.6,
                 rotation_jitter=0.15
@@ -386,7 +386,7 @@ class WimpyPDFGenerator:
                 font_path=title_font,
                 font_size=18,
                 color=(15, 15, 25),
-                line_spacing=1.3,
+                line_spacing=1.45,
                 x_jitter=1.5,
                 y_jitter=0.8,
                 rotation_jitter=0.2
@@ -395,7 +395,7 @@ class WimpyPDFGenerator:
                 font_path=title_font,
                 font_size=15,
                 color=(15, 15, 25),
-                line_spacing=1.25,
+                line_spacing=1.4,
                 x_jitter=1.3,
                 y_jitter=0.7,
                 rotation_jitter=0.18
@@ -404,7 +404,7 @@ class WimpyPDFGenerator:
                 font_path=title_font,
                 font_size=13,
                 color=(20, 20, 30),
-                line_spacing=1.2,
+                line_spacing=1.35,
                 x_jitter=1.1,
                 y_jitter=0.6,
                 rotation_jitter=0.15
@@ -413,7 +413,7 @@ class WimpyPDFGenerator:
                 font_path=body_font,
                 font_size=11,
                 color=(30, 30, 40),
-                line_spacing=1.15,
+                line_spacing=1.3,
                 x_jitter=1.0,
                 y_jitter=0.5,
                 rotation_jitter=0.12
@@ -422,7 +422,7 @@ class WimpyPDFGenerator:
                 font_path=dialogue_font,
                 font_size=11,
                 color=(40, 20, 60),  # Slightly purple for dialogue
-                line_spacing=1.3,
+                line_spacing=1.45,
                 x_jitter=1.5,
                 y_jitter=0.7,
                 rotation_jitter=0.2
@@ -497,7 +497,7 @@ class WimpyPDFGenerator:
         self.canvas.setStrokeColorRGB(0.7, 0.85, 0.95)
         self.canvas.setLineWidth(0.5)
         
-        line_spacing = 24  # Slightly wider spacing for Wimpy Kid style
+        line_spacing = 28  # Slightly wider spacing for Wimpy Kid style (matches text)
         y = self.page_style.height - self.page_style.margins[1]
         
         while y > self.page_style.margins[3]:
@@ -539,7 +539,7 @@ class WimpyPDFGenerator:
                      self.page_style.margins[2] - self.page_style.text_area_padding)
         
         current_y = self.page_style.height - self.page_style.margins[1] - 15
-        line_height_base = 24  # Match the ruled line spacing
+        line_height_base = 28  # Match the ruled line spacing (increased for better spacing)
         
         for element_type, content, original in parsed_content:
             if element_type == 'empty':
