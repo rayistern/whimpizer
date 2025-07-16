@@ -412,34 +412,34 @@ class WimpyPDFGenerator:
                 font_path=body_font,
                 font_size=18,
                 color=(25, 25, 35),  # Slightly blue-black like ink
-                line_spacing=1.37,
-                x_jitter=1.2,
-                y_jitter=0.6,
-                rotation_jitter=0.15
+                line_spacing=1.325,
+                x_jitter=1.0,
+                y_jitter=0.4,
+                rotation_jitter=0.05
             ),
             'h1': TextStyle(
                 font_path=title_font,
-                font_size=22,
+                font_size=27,
                 color=(15, 15, 25),
-                line_spacing=1.3,
+                line_spacing=1.19,
                 x_jitter=1.5,
                 y_jitter=0.8,
                 rotation_jitter=0.2
             ),
             'h2': TextStyle(
-                font_path=title_font,
-                font_size=17,
-                color=(15, 15, 25),
-                line_spacing=1.25,
-                x_jitter=1.3,
-                y_jitter=0.7,
-                rotation_jitter=0.18
+                font_path=body_font,  # Use regular body font for h2
+                font_size=self.text_styles['paragraph'].font_size if hasattr(self, 'text_styles') and 'paragraph' in self.text_styles else 18,
+                color=(25, 25, 35),  # Same ink colour as paragraph
+                line_spacing=self.text_styles['paragraph'].line_spacing if hasattr(self, 'text_styles') and 'paragraph' in self.text_styles else 1.325,
+                x_jitter=self.text_styles['paragraph'].x_jitter if hasattr(self, 'text_styles') and 'paragraph' in self.text_styles else 1.0,
+                y_jitter=self.text_styles['paragraph'].y_jitter if hasattr(self, 'text_styles') and 'paragraph' in self.text_styles else 0.4,
+                rotation_jitter=self.text_styles['paragraph'].rotation_jitter if hasattr(self, 'text_styles') and 'paragraph' in self.text_styles else 0.05
             ),
             'h3': TextStyle(
                 font_path=title_font,
                 font_size=18,
                 color=(20, 20, 30),
-                line_spacing=1.2,
+                line_spacing=0.95,
                 x_jitter=1.1,
                 y_jitter=0.6,
                 rotation_jitter=0.15
@@ -448,16 +448,16 @@ class WimpyPDFGenerator:
                 font_path=body_font,
                 font_size=18,
                 color=(30, 30, 40),
-                line_spacing=1.15,
+                line_spacing=1.325,
                 x_jitter=1.0,
-                y_jitter=0.5,
+                y_jitter=0.4,
                 rotation_jitter=0.12
             ),
             'dialogue': TextStyle(
                 font_path=dialogue_font,
                 font_size=18,
                 color=(40, 20, 60),  # Slightly purple for dialogue
-                line_spacing=1.33,
+                line_spacing=1.325,
                 x_jitter=1.5,
                 y_jitter=0.7,
                 rotation_jitter=0.2
@@ -479,7 +479,7 @@ class WimpyPDFGenerator:
                 print("Warning: Using default notebook background (no single_page.png found)")
             self.page_style = PageStyle(
                 background_image=bg_image,
-                margins=(85, 78, 15, 60),  # Reduced top from 90→78, bottom from 72→60
+                margins=(70, 71, 15, 60),  # Reduced top from 90→78, bottom from 72→60
                 text_area_padding=5
             )
         else:
@@ -580,8 +580,12 @@ class WimpyPDFGenerator:
             if element_type == 'empty':
                 current_y -= line_height_base * 0.5
                 continue
-            
-            # Get style for this element
+
+            # Skip h1 and h3 entirely (Wimpy Kid books have no visible headers)
+            if element_type in ['h1', 'h3']:
+                continue
+
+            # Get style for this element (h2 now shares paragraph style settings)
             style = self.text_styles.get(element_type, self.text_styles['paragraph'])
             
             # Set font
@@ -592,21 +596,40 @@ class WimpyPDFGenerator:
             line_height = line_height_base * style.line_spacing
             
             # Handle different element types
-            if element_type in ['h1', 'h2', 'h3']:
-                current_y -= line_height * 0.4  # Extra space before headers
-                
-                # Check if we need a new page
+            if element_type == 'h2':
+                # Treat h2 as paragraph but underline the text
+                # Check for new page
                 if current_y < self.page_style.margins[3] + line_height:
                     self.canvas.showPage()
                     self._draw_page_background()
-                    # re-apply font after the page switch
                     renderer.set_font(font_name, style.font_size)
                     current_y = self.page_style.height - self.page_style.margins[1] - 15
-                
-                # Render header
-                renderer.draw_text_with_effects(content, text_x, current_y, style)
-                current_y -= line_height
-                current_y -= line_height * 0.3  # Extra space after headers
+
+                wrapped_lines = self._wrap_text(content, font_name, style.font_size, text_width)
+                for line in wrapped_lines:
+                    if current_y < self.page_style.margins[3] + line_height:
+                        self.canvas.showPage()
+                        self._draw_page_background()
+                        renderer.set_font(font_name, style.font_size)
+                        current_y = self.page_style.height - self.page_style.margins[1] - 15
+
+                    # Draw the text
+                    renderer.draw_text_with_effects(line, text_x, current_y, style)
+
+                    # Underline: approximate width of text
+                    line_width = self.canvas.stringWidth(line, renderer.current_font, style.font_size)
+                    underline_y = current_y - (style.font_size * 0.15)
+                    self.canvas.saveState()
+                    r, g, b = [c/255.0 for c in style.color]
+                    self.canvas.setStrokeColorRGB(r, g, b)
+                    self.canvas.setLineWidth(1)
+                    self.canvas.line(text_x, underline_y, text_x + line_width, underline_y)
+                    self.canvas.restoreState()
+
+                    current_y -= line_height
+
+                # Extra space after header-like underline
+                current_y -= line_height * 0.3
                 
             elif element_type == 'dialogue':
                 # Special handling for dialogue
