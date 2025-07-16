@@ -551,10 +551,25 @@ class WimpyPDFGenerator:
     def create_pdf(self, content: str, output_filename: str, style: str = "notebook"):
         """Create a PDF with the given content and style"""
         
-        # Parse content
+        # Parse content while preserving line breaks
         parser = MarkdownParser()
         lines = content.split('\n')
-        parsed_content = [parser.parse_line(line) for line in lines]
+        parsed_content = []
+        
+        for i, line in enumerate(lines):
+            parsed_line = parser.parse_line(line)
+            parsed_content.append(parsed_line)
+            
+            # Add empty line elements to preserve spacing between content
+            # except after the last line or before an existing empty line
+            if (i < len(lines) - 1 and 
+                parsed_line[0] != 'empty' and 
+                i + 1 < len(lines) and 
+                lines[i + 1].strip() != ''):
+                # Check if next line will be an empty element
+                next_parsed = parser.parse_line(lines[i + 1])
+                if next_parsed[0] != 'empty':
+                    parsed_content.append(('empty', '', ''))
         
         # Filter out 'skip', 'h1', and 'h3' elements
         parsed_content = [item for item in parsed_content if item[0] not in ['skip', 'h1', 'h3']]
