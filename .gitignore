@@ -41,12 +41,32 @@ wheels/
 ehthumbs.db
 Thumbs.db
 
-# Logs
+# User Data - Downloaded Content
+downloaded_content/*
+!downloaded_content/.gitkeep
+
+# User Data - Processed Content
+whimperized_content/*
+!whimperized_content/.gitkeep
+
+# User Data - Generated PDFs
+pdfs/
+*.pdf
+!resources/**/*.pdf
+
+# User Data - URL Lists
+urls.txt
+urls.csv
+
+# User Data - Logs
 logs/*.log
 logs/*.txt
 !logs/.gitkeep
 
-# Output directories (generated content)
+# User Data - Old/Backup Files
+old/
+
+# Output directories (legacy paths)
 output/downloaded_content/*
 !output/downloaded_content/.gitkeep
 
@@ -56,8 +76,8 @@ output/whimperized_content/*
 output/pdfs/*
 !output/pdfs/.gitkeep
 
-# Generated PDFs
-output/*.pdf
+# Generated PDFs (legacy)
+output*.pdf
 
 # Test outputs
 tests/output/
