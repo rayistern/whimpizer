@@ -312,7 +312,8 @@ class MarkdownParser:
             return 'empty', '', line
         
         # Check for dialogue (quoted text)
-        if line.strip().startswith('"') and line.strip().endswith('"'):
+        # Accept both straight (") and curly opening quotes (U+201C)
+        if line.strip().startswith(('"', '“')):
             return 'dialogue', line.strip(), line
         
         # Headers
@@ -377,7 +378,7 @@ class WimpyPDFGenerator:
                 font_path=body_font,
                 font_size=12,
                 color=(25, 25, 35),  # Slightly blue-black like ink
-                line_spacing=1.35,
+                line_spacing=1.2,
                 x_jitter=1.2,
                 y_jitter=0.6,
                 rotation_jitter=0.15
@@ -386,7 +387,7 @@ class WimpyPDFGenerator:
                 font_path=title_font,
                 font_size=18,
                 color=(15, 15, 25),
-                line_spacing=1.45,
+                line_spacing=1.3,
                 x_jitter=1.5,
                 y_jitter=0.8,
                 rotation_jitter=0.2
@@ -395,7 +396,7 @@ class WimpyPDFGenerator:
                 font_path=title_font,
                 font_size=15,
                 color=(15, 15, 25),
-                line_spacing=1.4,
+                line_spacing=1.25,
                 x_jitter=1.3,
                 y_jitter=0.7,
                 rotation_jitter=0.18
@@ -404,7 +405,7 @@ class WimpyPDFGenerator:
                 font_path=title_font,
                 font_size=13,
                 color=(20, 20, 30),
-                line_spacing=1.35,
+                line_spacing=1.2,
                 x_jitter=1.1,
                 y_jitter=0.6,
                 rotation_jitter=0.15
@@ -413,7 +414,7 @@ class WimpyPDFGenerator:
                 font_path=body_font,
                 font_size=11,
                 color=(30, 30, 40),
-                line_spacing=1.3,
+                line_spacing=1.15,
                 x_jitter=1.0,
                 y_jitter=0.5,
                 rotation_jitter=0.12
@@ -422,7 +423,7 @@ class WimpyPDFGenerator:
                 font_path=dialogue_font,
                 font_size=11,
                 color=(40, 20, 60),  # Slightly purple for dialogue
-                line_spacing=1.45,
+                line_spacing=1.3,
                 x_jitter=1.5,
                 y_jitter=0.7,
                 rotation_jitter=0.2
@@ -497,7 +498,7 @@ class WimpyPDFGenerator:
         self.canvas.setStrokeColorRGB(0.7, 0.85, 0.95)
         self.canvas.setLineWidth(0.5)
         
-        line_spacing = 28  # Slightly wider spacing for Wimpy Kid style (matches text)
+        line_spacing = 24  # Slightly wider spacing for Wimpy Kid style
         y = self.page_style.height - self.page_style.margins[1]
         
         while y > self.page_style.margins[3]:
@@ -539,7 +540,7 @@ class WimpyPDFGenerator:
                      self.page_style.margins[2] - self.page_style.text_area_padding)
         
         current_y = self.page_style.height - self.page_style.margins[1] - 15
-        line_height_base = 28  # Match the ruled line spacing (increased for better spacing)
+        line_height_base = 24  # Match the ruled line spacing
         
         for element_type, content, original in parsed_content:
             if element_type == 'empty':
@@ -685,7 +686,19 @@ def read_file_content(file_path: str) -> Optional[str]:
     """Read content from a text file"""
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
-            return file.read()
+            content = file.read()
+            # Replace problematic characters that fonts might not support
+            content = content.replace(chr(0x2014), '--')  # Em-dash to double hyphen
+            content = content.replace(chr(0x201C), '"')   # Left curly quote to straight quote
+            content = content.replace(chr(0x201D), '"')   # Right curly quote to straight quote
+            content = content.replace(chr(0x2018), "'")   # Left curly apostrophe to straight apostrophe
+            content = content.replace(chr(0x2019), "'")   # Right curly apostrophe to straight apostrophe
+            content = content.replace(chr(0x2026), '...') # Ellipsis to three dots
+            content = content.replace(chr(0x2013), '-')   # En-dash to hyphen
+            # Additional apostrophe variants that might cause issues
+            content = content.replace('`', "'")   # Grave accent to apostrophe
+            content = content.replace('´', "'")   # Acute accent to apostrophe
+            return content
     except Exception as e:
         print(f"Error reading file {file_path}: {e}")
         return None

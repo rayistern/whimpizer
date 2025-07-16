@@ -254,7 +254,7 @@ Examples:
             if args.pdf_background:
                 cmd.extend(['--background', args.pdf_background])
             
-            # Note: wimpy_pdf_generator.py doesn't support --verbose flag
+            # Note: PDF generation doesn't support --verbose flag
             # if args.verbose:
             #     cmd.append('--verbose')
             

@@ -550,7 +550,7 @@ class Whimperizer:
             if isinstance(self.conversation_history, list):
                 # JSON format - use conversation history + new content
                 messages = self.conversation_history.copy()
-                new_message = f"""Ok fine. So here's a full chapter from the book; let's try with this, please generate a full Whimpy Kid rendition off of this text now! Here are those files of chapter 1 of the original Hillel diary (the version for grown ups). Output just the Whimpy version now!
+                new_message = f"""Ok fine. So here's a full chapter from the book; let's try with this, please generate a full Whimpy Kid rendition off of this text now! Here are those files of chapter 1 of the original Hillel diary (the version for grown ups). Output just the Whimpy version now, in markdown! And don't shorten it vs what I'm giving you here.
 
 {content}"""
                 messages.append({
@@ -594,6 +594,87 @@ class Whimperizer:
             logger.error(f"Error calling {self.provider_name} API: {e}")
             return None
     
+    def call_iterative_api(self, group_files, short_response):
+        """Call AI API iteratively for each file when response is too short"""
+        try:
+            logger.info(f"Starting iterative processing of {len(group_files)} files")
+            print(f"🔄 Response was short - processing each story individually...")
+            
+            # Start with conversation history + short response as overview
+            if isinstance(self.conversation_history, list):
+                messages = self.conversation_history.copy()
+                
+                # Add short response as overview
+                messages.append({
+                    "role": "assistant", 
+                    "content": short_response
+                })
+                
+                all_parts = []
+                
+                for i, file_info in enumerate(group_files, 1):
+                    logger.info(f"Processing file {i}/{len(group_files)}: {file_info['filename']}")
+                    print(f"📖 Processing story {i}/{len(group_files)}: {file_info['filename']}")
+                    
+                    # Read individual file content
+                    file_content = self.read_file_content(file_info['path'])
+                    if not file_content:
+                        logger.warning(f"Could not read file {file_info['filename']}")
+                        continue
+                    
+                    # Create message for this specific file
+                    if i == 1:
+                        file_message = f"""I think there's A LOT of solid content which could make this story much less BORING. Let's instead take this one piece at a time. Here's the first part of the original, let's WHIMPERIZE this one specific incident!
+
+{file_content}
+
+Please give me a full Wimpy Kid style diary entry for just this incident. Don't worry about the other parts - we'll do those next."""
+                    else:
+                        file_message = f"""OK! Here's the next piece from the original. Let's whimperize this specific incident too:
+
+{file_content}
+
+Please give me another Wimpy Kid style diary entry for this incident. Keep the same character voice and style as before."""
+                    
+                    messages.append({
+                        "role": "user",
+                        "content": file_message
+                    })
+                    
+                    # Get response for this file
+                    result = self.ai_provider.generate(messages)
+                    
+                    if result:
+                        logger.info(f"File {i} response: {len(result):,} characters")
+                        print(f"   ✅ Got {len(result):,} characters for this incident")
+                        all_parts.append(result)
+                        
+                        # Add AI's response to conversation for next iteration
+                        messages.append({
+                            "role": "assistant",
+                            "content": result
+                        })
+                    else:
+                        logger.warning(f"No response for file {file_info['filename']}")
+                        print(f"   ❌ Failed to get response for this incident")
+                
+                if all_parts:
+                    # Combine all parts into one coherent story
+                    combined_result = "\n\n".join(all_parts)
+                    logger.info(f"Iterative processing complete: {len(combined_result):,} total characters")
+                    print(f"🎯 Iterative processing complete: {len(combined_result):,} total characters")
+                    return combined_result
+                else:
+                    logger.error("No parts successfully processed")
+                    return None
+            else:
+                logger.warning("Using legacy format for iterative processing - not supported")
+                return None
+            
+        except Exception as e:
+            logger.error(f"Error in iterative API processing: {e}")
+            return None
+    
     def save_output(self, group_key, content):
         """Save the whimperized content to output file"""
         from datetime import datetime
@@ -634,7 +715,49 @@ class Whimperizer:
             # Error details already shown by AI provider
             return False
         
-        print(f"✅ Successfully whimperized group {group_key} ({len(whimperized_content):,} characters)")
+        # Check if response is suspiciously short and send follow-up
+        SHORT_THRESHOLD = 5000  # characters
+        if len(whimperized_content) < SHORT_THRESHOLD:
+            logger.info(f"Response is short ({len(whimperized_content)} chars < {SHORT_THRESHOLD}), sending follow-up...")
+            print(f"⚠️  Response seems short ({len(whimperized_content):,} chars), asking for clarification...")
+            
+            followup_response = self.call_iterative_api(group_files, whimperized_content)
+            
+            if followup_response and len(followup_response) > len(whimperized_content):
+                logger.info(f"Follow-up provided longer response ({len(followup_response)} vs {len(whimperized_content)} chars)")
+                print(f"📈 Follow-up expanded content: {len(whimperized_content):,} → {len(followup_response):,} chars")
+                whimperized_content = followup_response
+            elif followup_response:
+                logger.info(f"Follow-up provided explanation but not longer content")
+                print(f"💬 Follow-up provided explanation (keeping original)")
+                # Keep the original response, but maybe log the explanation
+                logger.info(f"AI explanation: {followup_response[:500]}...")
+            else:
+                logger.warning("Follow-up failed, using original short response")
+                print(f"⚠️  Follow-up failed, using original response")
+        
+        # Log content-only character counts (input files vs output, excluding conversation history)
+        input_chars = len(combined_content)
+        output_chars = len(whimperized_content)
+        ratio = output_chars / input_chars if input_chars > 0 else 0
+        change_percent = ((output_chars - input_chars) / input_chars * 100) if input_chars > 0 else 0
+        
+        logger.info(f"=== CONTENT TRANSFORMATION METRICS ===")
+        logger.info(f"Input content (files only): {input_chars:,} characters")
+        logger.info(f"Output content: {output_chars:,} characters")
+        logger.info(f"Size ratio: {ratio:.2f}x")
+        if change_percent >= 0:
+            logger.info(f"Content expansion: +{change_percent:.1f}%")
+        else:
+            logger.info(f"Content reduction: {change_percent:.1f}%")
+        
+        # Console output with content metrics
+        if change_percent >= 0:
+            print(f"✅ Successfully whimperized group {group_key}")
+            print(f"   📈 Content expanded: {input_chars:,} → {output_chars:,} chars (+{change_percent:.1f}%)")
+        else:
+            print(f"✅ Successfully whimperized group {group_key}")
+            print(f"   📉 Content condensed: {input_chars:,} → {output_chars:,} chars ({change_percent:.1f}%)")
         
         # Save output
         return self.save_output(group_key, whimperized_content)
