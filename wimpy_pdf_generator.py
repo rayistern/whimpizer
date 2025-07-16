@@ -571,8 +571,29 @@ class WimpyPDFGenerator:
                 if next_parsed[0] != 'empty':
                     parsed_content.append(('empty', '', ''))
         
+        # Remove empty lines between list items for tighter list spacing
+        cleaned_content = []
+        for i, item in enumerate(parsed_content):
+            element_type, content, original = item
+            
+            # Skip empty lines that are between list items
+            if element_type == 'empty':
+                # Check if this empty line is between two list items
+                prev_is_list = (i > 0 and parsed_content[i-1][0] == 'list_item')
+                next_is_list = (i < len(parsed_content) - 1 and parsed_content[i+1][0] == 'list_item')
+                
+                # Skip this empty line if it's between list items
+                if prev_is_list and next_is_list:
+                    continue
+                # Also skip if it's right after a list item and before non-empty content
+                # This prevents extra space after lists
+                elif prev_is_list and i < len(parsed_content) - 1 and parsed_content[i+1][0] != 'empty':
+                    continue
+            
+            cleaned_content.append(item)
+        
         # Filter out 'skip', 'h1', and 'h3' elements
-        parsed_content = [item for item in parsed_content if item[0] not in ['skip', 'h1', 'h3']]
+        parsed_content = [item for item in cleaned_content if item[0] not in ['skip', 'h1', 'h3']]
         
         # Setup page style
         if style == "notebook":
