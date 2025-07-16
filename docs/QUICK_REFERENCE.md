@@ -5,25 +5,25 @@
 ### Complete Pipeline (Recommended)
 ```bash
 # Basic usage
-python pipeline.py --urls urls.csv --verbose
+python src/pipeline.py --urls data/urls.csv --verbose
 
 # With specific AI provider
-python pipeline.py --urls urls.csv --provider anthropic --groups zaltz-1a
+python src/pipeline.py --urls data/urls.csv --provider anthropic --groups zaltz-1a
 
 # Skip download, use existing content
-python pipeline.py --skip-download --groups zaltz-1a --verbose
+python src/pipeline.py --skip-download --groups zaltz-1a --verbose
 ```
 
 ### Manual Step-by-Step
 ```bash
 # 1. Download content
-python bulk_downloader.py --input urls.csv --format txt
+python src/bulk_downloader.py --input data/urls.csv --format txt
 
 # 2. Transform with AI
-python whimperizer.py --groups zaltz-1a --verbose
+python src/whimperizer.py --groups zaltz-1a --verbose
 
 # 3. Generate PDF
-python wimpy_pdf_generator.py --input whimperized_content/zaltz-1a-*.md --output zaltz-1a.pdf
+python src/wimpy_pdf_generator.py --input output/whimperized_content/zaltz-1a-*.md --output output/zaltz-1a.pdf
 ```
 
 ## File Formats
@@ -37,7 +37,7 @@ https://example.com/story2,zaltz,1a,2
 
 ### Environment Variables
 ```bash
-# .env file
+# .env file (in project root)
 OPENAI_API_KEY=your_key_here
 ANTHROPIC_API_KEY=your_claude_key
 GOOGLE_API_KEY=your_gemini_key
@@ -45,7 +45,7 @@ GOOGLE_API_KEY=your_gemini_key
 
 ## Configuration Quick Settings
 
-### config.yaml - AI Models
+### config/config.yaml - AI Models
 ```yaml
 api:
   default_provider: "openai"  # openai | anthropic | google
@@ -58,7 +58,7 @@ api:
       model: "gemini-pro"
 ```
 
-### PDF Settings (in wimpy_pdf_generator.py)
+### PDF Settings (in src/wimpy_pdf_generator.py)
 ```python
 FONT_SIZES = {
     'paragraph': 18,    # Main text size
@@ -96,14 +96,20 @@ LINE_SPACING = {
 
 ```
 project/
-├── downloaded_content/
-│   └── group1-group2-line.txt
-├── whimperized_content/
-│   └── group1-group2-whimperized-timestamp.md
-├── pdfs/
-│   └── group1-group2-timestamp.pdf
-├── config.yaml
-└── .env
+├── src/                     # Source code
+├── config/                  # Configuration files
+│   └── config.yaml
+├── data/                    # Input data
+│   └── urls.csv
+├── output/                  # Generated content
+│   ├── downloaded_content/
+│   │   └── group1-group2-line.txt
+│   ├── whimperized_content/
+│   │   └── group1-group2-whimperized-timestamp.md
+│   └── pdfs/
+│       └── group1-group2-timestamp.pdf
+├── logs/                    # Log files
+└── .env                     # Environment variables
 ```
 
 ## Troubleshooting Quick Fixes
@@ -138,14 +144,14 @@ python selenium_downloader.py --headless
 
 ```bash
 # Test single document
-cp downloaded_content/large-file.txt downloaded_content/test-single-1.0.txt
-python pipeline.py --groups test-single --verbose
+cp output/downloaded_content/large-file.txt output/downloaded_content/test-single-1.0.txt
+python src/pipeline.py --groups test-single --verbose
 
 # Test PDF generation only
-python wimpy_pdf_generator.py --input input.md --output test.pdf --verbose
+python src/wimpy_pdf_generator.py --input data/input.md --output output/test.pdf --verbose
 
 # Debug AI transformation
-python whimperizer.py --groups test-single --verbose --log-level DEBUG
+python src/whimperizer.py --groups test-single --verbose --log-level DEBUG
 ```
 
 ## Resource Structure
@@ -180,20 +186,20 @@ resources/
 
 ### Process Multiple Groups
 ```bash
-python pipeline.py --urls urls.csv --groups zaltz-1a zaltz-1b zaltz-1c
+python src/pipeline.py --urls data/urls.csv --groups zaltz-1a zaltz-1b zaltz-1c
 ```
 
 ### Custom Directories
 ```bash
-python pipeline.py --download-dir content --whimper-dir stories --pdf-dir books
+python src/pipeline.py --download-dir content --whimper-dir stories --pdf-dir books
 ```
 
 ### Selenium with Custom Settings
 ```bash
-python pipeline.py --downloader selenium --headless --download-delay 3.0
+python src/pipeline.py --downloader selenium --headless --download-delay 3.0
 ```
 
 ### Debug Mode
 ```bash
-python pipeline.py --verbose --dry-run  # Show commands without executing
+python src/pipeline.py --verbose --dry-run  # Show commands without executing
 ```
