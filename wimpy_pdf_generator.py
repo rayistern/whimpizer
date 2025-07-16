@@ -391,7 +391,23 @@ class MarkdownParser:
         if line.startswith('# '):
             return 'h1', MarkdownParser._apply_inline_formatting(line[2:].strip()), original_line
         elif line.startswith('## '):
-            return 'h2', MarkdownParser._apply_inline_formatting(line[3:].strip()), original_line
+            # Process date-like headers
+            h2_content = line[3:].strip()
+            processed = MarkdownParser._apply_inline_formatting(h2_content)
+            weekdays = [
+                'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'
+            ]
+            first_word = processed.split()[0].lower() if processed.split() else ''
+            # Remove punctuation from first word to match weekday
+            first_word_clean = ''.join(c for c in first_word if c.isalpha())
+            if first_word_clean in weekdays:
+                # Keep only the weekday word (capitalize first letter)
+                weekday_clean = first_word_clean.capitalize()
+                # Return as h2 (date header)
+                return 'h2', weekday_clean, original_line
+            else:
+                # Skip non-weekday h2 lines entirely
+                return 'skip', '', original_line
         elif line.startswith('### '):
             return 'h3', MarkdownParser._apply_inline_formatting(line[4:].strip()), original_line
         elif line.startswith('#### '):  # treat 4-hash as h3/bold header
@@ -500,6 +516,15 @@ class WimpyPDFGenerator:
                 x_jitter=JITTER['dialogue']['x'],
                 y_jitter=JITTER['dialogue']['y'],
                 rotation_jitter=JITTER['dialogue']['rot']
+            ),
+            'month': TextStyle(
+                font_path=title_font,
+                font_size=FONT_SIZES.get('month', 20),
+                color=(15, 15, 25),
+                line_spacing=1.0,
+                x_jitter=0.0,
+                y_jitter=0.0,
+                rotation_jitter=0.0
             )
         }
     
@@ -510,6 +535,9 @@ class WimpyPDFGenerator:
         parser = MarkdownParser()
         lines = content.split('\n')
         parsed_content = [parser.parse_line(line) for line in lines]
+        
+        # Filter out 'skip' elements
+        parsed_content = [item for item in parsed_content if item[0] != 'skip']
         
         # Setup page style
         if style == "notebook":
@@ -615,7 +643,59 @@ class WimpyPDFGenerator:
         current_y = self.page_style.height - self.page_style.margins[1] - 15
         line_height_base = RULE_LINE_HEIGHT  # Match the ruled line spacing
         
-        for element_type, content, original in parsed_content:
+        current_month = None
+        month_names = [
+            'january','february','march','april','may','june',
+            'july','august','september','october','november','december'
+        ]
+
+        i = 0
+        while i < len(parsed_content):
+            element_type, content, original = parsed_content[i]
+            i += 1  # advance index immediately to avoid infinite loops
+
+            # Inject month header if needed (look at original line for month name)
+            if element_type == 'h2':
+                # find month in original string
+                lower_line = original.lower()
+                found_month = None
+                for mn in month_names:
+                    if mn in lower_line:
+                        found_month = mn.capitalize()
+                        break
+                if found_month and found_month != current_month:
+                    current_month = found_month
+                    # Render centered month header
+                    style_month = self.text_styles['month']
+                    renderer.set_font(style_month.font_path or 'body', style_month.font_size)
+                    month_text_width = self.canvas.stringWidth(current_month, renderer.current_font, style_month.font_size)
+                    center_x = (self.page_style.width - month_text_width)/2
+                    # Ensure page break
+                    line_height_month = line_height_base * style_month.line_spacing
+                    if current_y < self.page_style.margins[3] + line_height_month:
+                        self.canvas.showPage()
+                        self._draw_page_background()
+                        current_y = self.page_style.height - self.page_style.margins[1] - 15
+                    renderer.draw_text_with_effects(current_month, center_x, current_y, style_month)
+                    current_y -= line_height_month
+                    current_y -= line_height_base * 0.3  # small gap
+
+            # process element normally
+
+            # reuse variables
+            element_type_local = element_type
+            content_local = content
+            original_local = original
+
+            # existing processing now use element_type, content, original to let original loop body run.
+            # to avoid massive rewrite we will set element_type, content, original to these and let original loop body run.
+
+            element_type = element_type_local
+            content = content_local
+            original = original_local
+
+            # The rest of code is unchanged; we can copy processing code or restructure but easier: replicate old logic inside this while loop (need big change). To minimize diff, kept previous for loop logic; but we replaced for with while. We'll simply process via same body by copying earlier operations. This is large to insert.
+
             if element_type == 'empty':
                 # Move down by a fixed number of ruled lines for blank lines
                 current_y -= line_height_base * EMPTY_LINE_MULTIPLIER
@@ -720,7 +800,7 @@ class WimpyPDFGenerator:
                 
                 # Wrap and render list item text
                 wrapped_lines = self._wrap_text(content, font_name, style.font_size, text_width - 25)
-                for i, line in enumerate(wrapped_lines):
+                for line_idx, line in enumerate(wrapped_lines):
                     if current_y < self.page_style.margins[3] + line_height:
                         self.canvas.showPage()
                         self._draw_page_background()
@@ -748,7 +828,7 @@ class WimpyPDFGenerator:
                 
                 # Extra space after paragraphs (optional multiple of ruled lines)
                 current_y -= line_height_base * PARAGRAPH_EXTRA_MULTIPLIER
-    
+
     def _wrap_text(self, text: str, font_name: str, font_size: int, max_width: float) -> List[str]:
         """Word-wrap using actual font metrics so all lines stay inside margins"""
         if not text.strip():
