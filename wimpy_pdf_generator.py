@@ -682,6 +682,54 @@ class WimpyPDFGenerator:
         return wrapped if wrapped else ['']
 
 
+def wimpy_postprocess_text(content: str) -> str:
+    """Post-process text for Wimpy Kid style formatting"""
+    import re
+    
+    lines = content.split('\n')
+    processed_lines = []
+    
+    for line in lines:
+        # Step 1: Track if this line originally started with '>' for dialogue handling
+        was_dialogue_line = line.strip().startswith('>')
+        
+        # Remove '>' characters
+        line = re.sub(r'^>\s*', '', line)
+        
+        # Step 2: Handle #### headings first (preserve as bold headings)
+        heading_match = re.match(r'^####\s*(.+)$', line)
+        if heading_match:
+            heading_content = heading_match.group(1)
+            # Process heading content but keep it bold
+            heading_content = re.sub(r'\*\*(.*?)\*\*', lambda m: m.group(1).upper(), heading_content)
+            heading_content = re.sub(r'\*([^*]+)\*', lambda m: m.group(1).upper(), heading_content)
+            heading_content = re.sub(r"'([^']+)'", lambda m: m.group(1).upper(), heading_content)
+            line = f"**{heading_content}**"
+        else:
+            # Step 3: Convert **bold** text to CAPITALIZED TEXT
+            line = re.sub(r'\*\*(.*?)\*\*', lambda m: m.group(1).upper(), line)
+            
+            # Step 4: Convert *italic* text to **BOLD** TEXT
+            line = re.sub(r'\*([^*]+)\*', lambda m: f"**{m.group(1).upper()}**", line)
+            
+            # Step 5: Convert 'quoted' text to CAPITALIZED TEXT (only closed quotes)
+            line = re.sub(r"'([^']+)'", lambda m: m.group(1).upper(), line)
+            
+            # Step 6: Handle unclosed quotes on original > lines as dialogue
+            if was_dialogue_line:
+                # Look for opening quote without closing quote at end of line
+                quote_match = re.search(r'"([^"]+)$', line)
+                if quote_match:
+                    # Mark the text after the quote as dialogue
+                    before_quote = line[:quote_match.start()]
+                    dialogue_text = quote_match.group(1)
+                    line = f'{before_quote}"{dialogue_text}"'
+        
+        processed_lines.append(line)
+    
+    return '\n'.join(processed_lines)
+
+
 def read_file_content(file_path: str) -> Optional[str]:
     """Read content from a text file"""
     try:
@@ -698,6 +746,10 @@ def read_file_content(file_path: str) -> Optional[str]:
             # Additional apostrophe variants that might cause issues
             content = content.replace('`', "'")   # Grave accent to apostrophe
             content = content.replace('´', "'")   # Acute accent to apostrophe
+            
+            # Apply Wimpy Kid style post-processing
+            content = wimpy_postprocess_text(content)
+            
             return content
     except Exception as e:
         print(f"Error reading file {file_path}: {e}")
