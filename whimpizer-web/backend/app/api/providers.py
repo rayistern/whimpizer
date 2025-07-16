@@ -5,8 +5,10 @@ from fastapi import APIRouter, HTTPException
 from typing import List
 
 from app.models.jobs import ProviderInfo, AIProvider
+from app.services.ai_service import AIService
 
 router = APIRouter()
+ai_service = AIService()
 
 @router.get("/", response_model=List[ProviderInfo])
 async def list_providers():
@@ -79,3 +81,22 @@ async def get_provider_info(provider_name: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get provider info: {str(e)}")
+
+@router.post("/{provider_name}/test")
+async def test_provider_connection(provider_name: str):
+    """Test connection to a specific AI provider"""
+    try:
+        if provider_name not in ["openai", "anthropic", "google"]:
+            raise HTTPException(status_code=404, detail="Provider not found")
+        
+        # Test the connection
+        success = await ai_service.test_connection(provider_name)
+        
+        return {
+            "provider": provider_name,
+            "connected": success,
+            "message": "Connection successful" if success else "Connection failed"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Connection test failed: {str(e)}")
