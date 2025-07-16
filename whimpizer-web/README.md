@@ -23,13 +23,27 @@ cp .env.example .env
 
 3. **Start the stack**:
 ```bash
-docker-compose up -d
+# Easy way (auto-detects docker commands)
+./start-dev.sh
+
+# Background mode
+./start-dev-background.sh
+
+# Manual way
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 4. **Access the application**:
 - Backend API: http://localhost:8000
 - API Docs: http://localhost:8000/api/docs
 - Frontend: http://localhost:3001
+
+## 📚 **Quick Start Guides**
+
+- **[🚀 Open Source Portkey Setup](OPEN_SOURCE_PORTKEY_SETUP.md)** - Complete setup guide
+- **[⚡ Quick Commands Reference](QUICK_COMMANDS.md)** - All useful Docker commands
+- **[🗺️ Development Roadmap](ROADMAP.md)** - Future features and timeline
+- **[🤔 Questions & Answers](ANSWERS_TO_YOUR_QUESTIONS.md)** - Detailed implementation notes
 
 ## 🏗️ Architecture
 

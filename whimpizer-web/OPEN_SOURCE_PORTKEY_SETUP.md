@@ -35,10 +35,13 @@ nano .env
 
 ### 3. Start Everything
 ```bash
-# Option 1: Use our startup script
+# Option 1: Use our startup script (interactive)
 ./start-dev.sh
 
-# Option 2: Manual start
+# Option 2: Start in background
+./start-dev-background.sh
+
+# Option 3: Manual start
 docker compose -f docker-compose.dev.yml up --build
 ```
 
@@ -142,6 +145,20 @@ Great choice! This allows expansion beyond Wimpy Kid:
 - **Future Books**: Harry Potter style, Dr. Seuss style, etc.
 
 ## 🔧 Troubleshooting
+
+### Docker Command Not Found
+```bash
+# Error: "docker-compose: command not found"
+# Modern Docker uses 'docker compose' (with space)
+
+# Check which version you have:
+docker --version
+docker compose version
+
+# If you have old docker-compose:
+docker-compose --version
+```
+**Fix**: Our scripts auto-detect and use the right command!
 
 ### Portkey Not Starting
 ```bash
