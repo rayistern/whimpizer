@@ -865,6 +865,9 @@ class WimpyPDFGenerator:
         current_y = self.page_style.height - self.page_style.margins[1] - 15
         line_height_base = RULE_LINE_HEIGHT  # Match the ruled line spacing
         
+        # Track when we're at the start of a page to skip leading blank lines
+        at_page_start = True
+        
         months_seen: Set[str] = set()
         month_names = [
             'january','february','march','april','may','june',
@@ -896,6 +899,7 @@ class WimpyPDFGenerator:
                     line_height_month = line_height_base * style_month.line_spacing
                     if current_y < self.page_style.margins[3] + line_height_month:
                         self.canvas.showPage()
+                        at_page_start = True
                         page_num += 1
                         self._draw_page_background()
                         self._add_page_number(page_num, renderer)
@@ -921,6 +925,11 @@ class WimpyPDFGenerator:
             # The rest of code is unchanged; we can copy processing code or restructure but easier: replicate old logic inside this while loop (need big change). To minimize diff, kept previous for loop logic; but we replaced for with while. We'll simply process via same body by copying earlier operations. This is large to insert.
 
             if element_type == 'empty':
+                # Skip blank lines at the start of pages
+                if at_page_start:
+                    print(f"Skipping blank line at page start")
+                    continue
+                    
                 # Move down by a fixed number of ruled lines for blank lines
                 current_y -= line_height_base * EMPTY_LINE_MULTIPLIER
                 continue
@@ -938,6 +947,9 @@ class WimpyPDFGenerator:
             # Calculate line height
             line_height = line_height_base * style.line_spacing
             
+            # Mark that we're no longer at page start (we're about to render content)
+            at_page_start = False
+            
             # Handle different element types
             if element_type == 'h2':
                 # Check for orphan header before proceeding
@@ -945,6 +957,7 @@ class WimpyPDFGenerator:
                     print(f"Preventing orphan header: '{content[:50]}...'")
                     # Force page break to avoid orphan header
                     self.canvas.showPage()
+                    at_page_start = True
                     page_num += 1
                     self._draw_page_background()
                     self._add_page_number(page_num, renderer)
@@ -955,6 +968,7 @@ class WimpyPDFGenerator:
                 # Check for new page (normal page break logic)
                 if current_y < self.page_style.margins[3] + line_height:
                     self.canvas.showPage()
+                    at_page_start = True
                     page_num += 1
                     self._draw_page_background()
                     self._add_page_number(page_num, renderer)
@@ -965,6 +979,7 @@ class WimpyPDFGenerator:
                 for line in wrapped_lines:
                     if current_y < self.page_style.margins[3] + line_height:
                         self.canvas.showPage()
+                        at_page_start = True
                         page_num += 1
                         self._draw_page_background()
                         self._add_page_number(page_num, renderer)
@@ -994,6 +1009,7 @@ class WimpyPDFGenerator:
                 # Check if we need a new page
                 if current_y < self.page_style.margins[3] + line_height:
                     self.canvas.showPage()
+                    at_page_start = True
                     page_num += 1
                     self._draw_page_background()
                     self._add_page_number(page_num, renderer)
@@ -1007,6 +1023,7 @@ class WimpyPDFGenerator:
                 for line in wrapped_lines:
                     if current_y < self.page_style.margins[3] + line_height:
                         self.canvas.showPage()
+                        at_page_start = True
                         page_num += 1
                         self._draw_page_background()
                         self._add_page_number(page_num, renderer)
@@ -1021,6 +1038,7 @@ class WimpyPDFGenerator:
                 # Check if we need a new page
                 if current_y < self.page_style.margins[3] + line_height:
                     self.canvas.showPage()
+                    at_page_start = True
                     page_num += 1
                     self._draw_page_background()
                     self._add_page_number(page_num, renderer)
@@ -1046,6 +1064,7 @@ class WimpyPDFGenerator:
                 for line_idx, line in enumerate(wrapped_lines):
                     if current_y < self.page_style.margins[3] + line_height:
                         self.canvas.showPage()
+                        at_page_start = True
                         page_num += 1
                         self._draw_page_background()
                         self._add_page_number(page_num, renderer)
@@ -1063,6 +1082,7 @@ class WimpyPDFGenerator:
                 for line in wrapped_lines:
                     if current_y < self.page_style.margins[3] + line_height:
                         self.canvas.showPage()
+                        at_page_start = True
                         page_num += 1
                         self._draw_page_background()
                         self._add_page_number(page_num, renderer)
