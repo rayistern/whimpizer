@@ -13,8 +13,8 @@ class Settings(BaseSettings):
     
     # CORS settings - more flexible for deployment
     ALLOWED_HOSTS: List[str] = [
-        "http://localhost:3000", 
-        "http://127.0.0.1:3000",
+        "http://localhost:3001", 
+        "http://127.0.0.1:3001",
         "https://*.netlify.app",  # Netlify deployments
         "https://*.vercel.app"    # Vercel deployments (alternative)
     ]

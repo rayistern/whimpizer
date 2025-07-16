@@ -20,7 +20,7 @@ docker-compose -f docker-compose.dev.yml up --build
 echo "✅ All services started!"
 echo ""
 echo "🌐 Access points:"
-echo "   Frontend: http://localhost:3000"
+echo "   Frontend: http://localhost:3001"
 echo "   Backend API: http://localhost:8000"
 echo "   Portkey Gateway: http://localhost:8787"
 echo "   Redis: localhost:6379"

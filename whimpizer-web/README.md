@@ -29,7 +29,7 @@ docker-compose up -d
 4. **Access the application**:
 - Backend API: http://localhost:8000
 - API Docs: http://localhost:8000/api/docs
-- Frontend: http://localhost:3000 (placeholder for now)
+- Frontend: http://localhost:3001
 
 ## 🏗️ Architecture
 

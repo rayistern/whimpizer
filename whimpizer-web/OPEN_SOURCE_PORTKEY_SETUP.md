@@ -43,7 +43,7 @@ docker compose -f docker-compose.dev.yml up --build
 ```
 
 ### 4. Access Your Services
-- 🌐 **Frontend**: http://localhost:3000
+- 🌐 **Frontend**: http://localhost:3001
 - 🔧 **Backend API**: http://localhost:8000/docs
 - ⚡ **Portkey Gateway**: http://localhost:8787
 - 📊 **Redis**: localhost:6379
@@ -173,5 +173,5 @@ The setup is designed to be **super simple** - most issues are just missing API 
 
 1. Check the logs: `docker compose logs`
 2. Verify API keys are in `.env`
-3. Make sure ports 3000, 8000, 8787, 6379 are free
+3. Make sure ports 3001, 8000, 8787, 6379 are free
 4. Try restarting: `docker compose down && docker compose up`

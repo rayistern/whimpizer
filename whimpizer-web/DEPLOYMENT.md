@@ -162,7 +162,7 @@ npm run dev
 
 ### 3. Test Full Stack
 
-- Frontend: http://localhost:3000
+- Frontend: http://localhost:3001
 - Backend API: http://localhost:8000
 - API Docs: http://localhost:8000/api/docs
 
@@ -192,7 +192,7 @@ PORTKEY_APP_ID=your_app_id  # Optional
 REDIS_URL=redis://localhost:6379
 
 # CORS
-ALLOWED_HOSTS=["http://localhost:3000","https://your-app.netlify.app"]
+ALLOWED_HOSTS=["http://localhost:3001","https://your-app.netlify.app"]
 
 # File paths (for Docker deployment)
 WHIMPIZER_CONFIG_PATH=/app/whimpizer_config/config.yaml

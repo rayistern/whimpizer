@@ -23,7 +23,7 @@ nano .env  # Add: OPENAI_API_KEY=sk-...
 ./start-dev.sh
 
 # Access at:
-# Frontend: http://localhost:3000  
+# Frontend: http://localhost:3001  
 # Backend: http://localhost:8000/docs
 # Portkey: http://localhost:8787
 ```
@@ -79,7 +79,7 @@ I can build an admin panel with:
 # You'll see 4 services start:
 - Portkey Gateway (port 8787)
 - FastAPI Backend (port 8000) 
-- React Frontend (port 3000)
+- React Frontend (port 3001)
 - Redis (port 6379)
 
 # All pre-configured and networked together!
