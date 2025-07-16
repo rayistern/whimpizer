@@ -775,6 +775,80 @@ class WimpyPDFGenerator:
  
         self.canvas.drawString(x, y, page_text)
 
+    def _check_header_orphan(self, content_items: List[Tuple[str, str, str]], start_index: int, 
+                            current_y: float, line_height_base: float, text_width: float, 
+                            renderer: HandwritingRenderer) -> bool:
+        """
+        Check if a header at start_index would be orphaned (at bottom of page with little content).
+        Returns True if the header should be moved to next page.
+        """
+        if start_index >= len(content_items):
+            return False
+            
+        element_type, content, _ = content_items[start_index]
+        
+        # Only check headers
+        if element_type != 'h2':
+            return False
+        
+        # Calculate space needed for header itself
+        style = self.text_styles.get(element_type, self.text_styles['paragraph'])
+        font_logical = style.font_path or 'body'
+        renderer.set_font(font_logical, style.font_size)
+        font_name = renderer.current_font
+        
+        header_lines = self._wrap_text(content, font_name, style.font_size, text_width)
+        header_height = len(header_lines) * line_height_base * style.line_spacing
+        header_height += line_height_base * 0.3  # Extra space after header
+        
+        # Look ahead to see what content follows the header
+        content_following_height = 0
+        meaningful_content_lines = 0
+        
+        # Check the next few elements after the header
+        for i in range(start_index + 1, min(start_index + 5, len(content_items))):
+            following_type, following_content, _ = content_items[i]
+            
+            if following_type == 'empty':
+                content_following_height += line_height_base * EMPTY_LINE_MULTIPLIER
+                continue
+            elif following_type in ['h2', 'h1', 'h3']:
+                # Another header - stop looking
+                break
+            elif following_type in ['paragraph', 'list_item', 'dialogue']:
+                # This is meaningful content
+                following_style = self.text_styles.get(following_type, self.text_styles['paragraph'])
+                following_font = following_style.font_path or 'body'
+                renderer.set_font(following_font, following_style.font_size)
+                following_font_name = renderer.current_font
+                
+                following_lines = self._wrap_text(following_content, following_font_name, 
+                                                following_style.font_size, text_width)
+                meaningful_content_lines += len(following_lines)
+                content_following_height += len(following_lines) * line_height_base * following_style.line_spacing
+                
+                # If we have enough content, no need to look further
+                if meaningful_content_lines >= 3:  # At least 3 lines of content
+                    break
+        
+        # Calculate if header + content would fit reasonably on current page
+        total_height_needed = header_height + content_following_height
+        space_available = current_y - self.page_style.margins[3]
+        
+        # Criteria for orphan header:
+        # 1. Header would fit on current page but with very little space for content
+        # 2. Less than 3 lines of meaningful content following
+        # 3. Less than 25% of page height available for content after header
+        
+        min_content_space = self.page_style.height * 0.25  # 25% of page height
+        
+        if (header_height < space_available and  # Header fits
+            meaningful_content_lines < 3 and     # But little content follows
+            (space_available - header_height) < min_content_space):  # And not much space left
+            return True  # This is an orphan header
+        
+        return False
+
     def _render_content(self, parsed_content: List[Tuple[str, str, str]], renderer: HandwritingRenderer):
         """Render the parsed content to PDF"""
         
@@ -866,8 +940,19 @@ class WimpyPDFGenerator:
             
             # Handle different element types
             if element_type == 'h2':
+                # Check for orphan header before proceeding
+                if self._check_header_orphan(parsed_content, i-1, current_y, line_height_base, text_width, renderer):
+                    print(f"Preventing orphan header: '{content[:50]}...'")
+                    # Force page break to avoid orphan header
+                    self.canvas.showPage()
+                    page_num += 1
+                    self._draw_page_background()
+                    self._add_page_number(page_num, renderer)
+                    renderer.set_font(font_logical, style.font_size)
+                    current_y = self.page_style.height - self.page_style.margins[1] - 15
+                
                 # Treat h2 as paragraph but underline the text
-                # Check for new page
+                # Check for new page (normal page break logic)
                 if current_y < self.page_style.margins[3] + line_height:
                     self.canvas.showPage()
                     page_num += 1
