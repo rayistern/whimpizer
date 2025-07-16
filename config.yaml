@@ -7,7 +7,7 @@ api:
   providers:
     openai:
       base_url: "https://api.openai.com/v1"
-      model: "o4-mini"  # Reasoning model - fixed typo from o4-mini
+      model: "o3"  # Reasoning model - fixed typo from o4-mini
       # max_tokens: 327680  # Commented out - not needed for most use cases
       temperature: 0.7
     

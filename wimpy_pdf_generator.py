@@ -9,7 +9,7 @@ import re
 import random
 import argparse
 from pathlib import Path
-from typing import List, Tuple, Optional, Dict, Any
+from typing import List, Tuple, Optional, Dict, Any, Set
 from dataclasses import dataclass
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
@@ -643,7 +643,7 @@ class WimpyPDFGenerator:
         current_y = self.page_style.height - self.page_style.margins[1] - 15
         line_height_base = RULE_LINE_HEIGHT  # Match the ruled line spacing
         
-        current_month = None
+        months_seen: Set[str] = set()
         month_names = [
             'january','february','march','april','may','june',
             'july','august','september','october','november','december'
@@ -663,12 +663,12 @@ class WimpyPDFGenerator:
                     if mn in lower_line:
                         found_month = mn.capitalize()
                         break
-                if found_month and found_month != current_month:
-                    current_month = found_month
+                if found_month and found_month not in months_seen:
+                    months_seen.add(found_month)
                     # Render centered month header
                     style_month = self.text_styles['month']
                     renderer.set_font(style_month.font_path or 'body', style_month.font_size)
-                    month_text_width = self.canvas.stringWidth(current_month, renderer.current_font, style_month.font_size)
+                    month_text_width = self.canvas.stringWidth(found_month, renderer.current_font, style_month.font_size)
                     center_x = (self.page_style.width - month_text_width)/2
                     # Ensure page break
                     line_height_month = line_height_base * style_month.line_spacing
@@ -676,7 +676,7 @@ class WimpyPDFGenerator:
                         self.canvas.showPage()
                         self._draw_page_background()
                         current_y = self.page_style.height - self.page_style.margins[1] - 15
-                    renderer.draw_text_with_effects(current_month, center_x, current_y, style_month)
+                    renderer.draw_text_with_effects(found_month, center_x, current_y, style_month)
                     current_y -= line_height_month
                     current_y -= line_height_base * 0.3  # small gap
 

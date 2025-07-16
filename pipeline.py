@@ -57,17 +57,33 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Basic pipeline
-  python pipeline.py --urls urls.txt
+  # Basic pipeline (uses selenium by default for better success rate)
+  python pipeline.py --urls urls.csv --groups zaltz-1a
   
-  # With specific settings
-  python pipeline.py --urls urls.txt --provider anthropic --groups zaltz-1a --pdf-style notebook
+  # Specify AI model by editing config.yaml first, then:
+  python pipeline.py --urls urls.csv --provider openai --groups zaltz-1a
   
-  # Skip download step (use existing files)
-  python pipeline.py --skip-download --groups zaltz-1a --verbose
+  # Full pipeline with recommended settings
+  python pipeline.py --urls urls.csv --provider anthropic --groups zaltz-1a --headless --download-delay 3.0 --pdf-style notebook --verbose
   
-  # Custom output locations
-  python pipeline.py --urls urls.txt --download-dir content --whimper-dir stories --pdf-dir books
+  # If downloads are blocked, try different approaches:
+  python pipeline.py --urls urls.csv --groups zaltz-1a --download-delay 5.0 --headless
+  python pipeline.py --urls urls.csv --groups zaltz-1a --downloader basic --download-format csv
+   
+  # Skip steps if you have existing content
+  python pipeline.py --skip-download --provider anthropic --groups zaltz-1a
+  python pipeline.py --skip-download --skip-whimperize --groups zaltz-1a  # PDFs only
+   
+  # Process multiple groups
+  python pipeline.py --urls urls.csv --groups zaltz-1a zaltz-1b --provider openai
+   
+  # Custom directories
+  python pipeline.py --urls urls.csv --groups zaltz-1a --download-dir content --whimper-dir stories --pdf-dir books
+  
+  # Available AI models (edit config.yaml first):
+  # OpenAI: gpt-4o, gpt-4-turbo, o1-preview, o1-mini
+  # Anthropic: claude-3-sonnet-20240229, claude-3-opus-20240229  
+  # Google: gemini-pro
         """
     )
     
@@ -90,14 +106,14 @@ Examples:
                         help='Skip PDF generation step')
     
     # Download Options
-    parser.add_argument('--downloader', choices=['basic', 'selenium'], default='basic',
-                        help='Downloader to use (default: basic)')
+    parser.add_argument('--downloader', choices=['basic', 'selenium'], default='selenium',
+                        help='Downloader to use (default: selenium - better for bypassing blocks)')
     parser.add_argument('--download-format', choices=['json', 'csv', 'txt'], default='txt',
-                        help='Download format (default: txt)')
+                        help='Download format - only applies to basic downloader (default: txt)')
     parser.add_argument('--download-delay', type=float, default=1.0,
-                        help='Delay between downloads in seconds (default: 1.0)')
+                        help='Delay between downloads in seconds (default: 1.0, recommend 3-5 for selenium)')
     parser.add_argument('--headless', action='store_true',
-                        help='Run selenium in headless mode')
+                        help='Run selenium in headless mode (no visible browser window)')
     
     # AI/Whimperizer Options
     parser.add_argument('--provider', choices=['openai', 'anthropic', 'google'],
@@ -157,15 +173,15 @@ Examples:
             'python', downloader,
             '--input', args.urls,
             '--output-dir', args.download_dir,
-            '--format', args.download_format,
             '--delay', str(args.download_delay)
         ]
         
+        # Only basic downloader supports format selection
+        if args.downloader == 'basic':
+            cmd.extend(['--format', args.download_format])
+        
         if args.downloader == 'selenium' and args.headless:
             cmd.append('--headless')
-        
-        if args.verbose:
-            cmd.append('--verbose')
         
         if args.dry_run:
             print(f"Would run: {' '.join(cmd)}")
