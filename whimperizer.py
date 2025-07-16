@@ -715,26 +715,20 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
             # Error details already shown by AI provider
             return False
         
-        # Check if response is suspiciously short and send follow-up
-        SHORT_THRESHOLD = 5000  # characters
-        if len(whimperized_content) < SHORT_THRESHOLD:
-            logger.info(f"Response is short ({len(whimperized_content)} chars < {SHORT_THRESHOLD}), sending follow-up...")
-            print(f"⚠️  Response seems short ({len(whimperized_content):,} chars), asking for clarification...")
-            
-            followup_response = self.call_iterative_api(group_files, whimperized_content)
-            
-            if followup_response and len(followup_response) > len(whimperized_content):
-                logger.info(f"Follow-up provided longer response ({len(followup_response)} vs {len(whimperized_content)} chars)")
-                print(f"📈 Follow-up expanded content: {len(whimperized_content):,} → {len(followup_response):,} chars")
-                whimperized_content = followup_response
-            elif followup_response:
-                logger.info(f"Follow-up provided explanation but not longer content")
-                print(f"💬 Follow-up provided explanation (keeping original)")
-                # Keep the original response, but maybe log the explanation
-                logger.info(f"AI explanation: {followup_response[:500]}...")
-            else:
-                logger.warning("Follow-up failed, using original short response")
-                print(f"⚠️  Follow-up failed, using original response")
+        # Always use iterative processing for more complete results
+        logger.info(f"Starting iterative processing for more comprehensive coverage...")
+        print(f"🔄 Using iterative processing for comprehensive whimperization...")
+        
+        followup_response = self.call_iterative_api(group_files, whimperized_content)
+        
+        if followup_response and len(followup_response) > len(whimperized_content):
+            logger.info(f"Iterative processing provided longer response ({len(followup_response)} vs {len(whimperized_content)} chars)")
+            print(f"📈 Iterative processing expanded content: {len(whimperized_content):,} → {len(followup_response):,} chars")
+            whimperized_content = followup_response
+        elif followup_response:
+            logger.info(f"Iterative processing provided same/shorter response, keeping original")
+        else:
+            logger.warning("Iterative processing failed, keeping original response")
         
         # Log content-only character counts (input files vs output, excluding conversation history)
         input_chars = len(combined_content)

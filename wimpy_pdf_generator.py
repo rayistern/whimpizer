@@ -342,6 +342,11 @@ class MarkdownParser:
     @staticmethod
     def _apply_inline_formatting(text: str) -> str:
         """Convert **bold**, *italic*, and 'quoted' segments to UPPERCASE plain text"""
+        # Clean up text: remove --- and __, replace em dashes
+        text = text.replace('---', '')
+        text = text.replace('__', '')
+        text = text.replace('—', '-')  # em dash to regular hyphen
+        
         # **bold** -> BOLD (remove asterisks, uppercase)
         def bold_repl(match):
             return match.group(1).upper()
@@ -406,7 +411,23 @@ class MarkdownParser:
                 # Skip non-weekday h2 lines entirely
                 return 'skip', '', original_line
         elif line.startswith('### '):
-            return 'h3', MarkdownParser._apply_inline_formatting(line[4:].strip()), original_line
+            # Check if h3 is a weekday too (same logic as h2)
+            h3_content = line[4:].strip()
+            processed = MarkdownParser._apply_inline_formatting(h3_content)
+            weekdays = [
+                'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'
+            ]
+            first_word = processed.split()[0].lower() if processed.split() else ''
+            # Remove punctuation from first word to match weekday
+            first_word_clean = ''.join(c for c in first_word if c.isalpha())
+            if first_word_clean in weekdays:
+                # Keep only the weekday word (capitalize first letter)
+                weekday_clean = first_word_clean.capitalize()
+                # Return as h2 (convert h3 weekdays to h2 for consistency)
+                return 'h2', weekday_clean, original_line
+            else:
+                # Non-weekday h3s get skipped
+                return 'skip', '', original_line
         elif line.startswith('#### '):  # treat 4-hash as h3/bold header
             return 'h3', MarkdownParser._apply_inline_formatting(line[5:].strip()), original_line
 
@@ -626,11 +647,30 @@ class WimpyPDFGenerator:
             hole_y = self.page_style.height * pos
             self.canvas.circle(hole_x, hole_y, hole_radius, fill=1, stroke=1)
     
+    def _add_page_number(self, page_num: int, renderer: 'HandwritingRenderer', font_size: int = 14):
+        """Add page number to the current page"""
+        # Use Wimpy body font for page numbers
+        body_font = self.text_styles['paragraph'].font_path or 'body'
+        renderer.set_font(body_font, font_size)
+        font_name = renderer.current_font
+        self.canvas.setFont(font_name, font_size)
+        self.canvas.setFillColorRGB(0.4, 0.4, 0.4)  # Gray color
+ 
+        # Position at bottom center
+        page_text = str(page_num)
+        text_width = self.canvas.stringWidth(page_text, font_name, font_size)
+        x = (self.page_style.width - text_width) / 2
+        y = 20  # 20 points from bottom
+ 
+        self.canvas.drawString(x, y, page_text)
+
     def _render_content(self, parsed_content: List[Tuple[str, str, str]], renderer: HandwritingRenderer):
         """Render the parsed content to PDF"""
         
         # Start first page
+        page_num = 1
         self._draw_page_background()
+        self._add_page_number(page_num, renderer)
         
         # Calculate text area
         text_x = self.page_style.margins[0] + self.page_style.text_area_padding
@@ -671,7 +711,9 @@ class WimpyPDFGenerator:
                     line_height_month = line_height_base * style_month.line_spacing
                     if current_y < self.page_style.margins[3] + line_height_month:
                         self.canvas.showPage()
+                        page_num += 1
                         self._draw_page_background()
+                        self._add_page_number(page_num, renderer)
                         current_y = self.page_style.height - self.page_style.margins[1] - 15
                     renderer.draw_text_with_effects(found_month, center_x, current_y, style_month)
                     current_y -= line_height_month
@@ -717,7 +759,9 @@ class WimpyPDFGenerator:
                 # Check for new page
                 if current_y < self.page_style.margins[3] + line_height:
                     self.canvas.showPage()
+                    page_num += 1
                     self._draw_page_background()
+                    self._add_page_number(page_num, renderer)
                     renderer.set_font(font_logical, style.font_size)
                     current_y = self.page_style.height - self.page_style.margins[1] - 15
 
@@ -725,7 +769,9 @@ class WimpyPDFGenerator:
                 for line in wrapped_lines:
                     if current_y < self.page_style.margins[3] + line_height:
                         self.canvas.showPage()
+                        page_num += 1
                         self._draw_page_background()
+                        self._add_page_number(page_num, renderer)
                         renderer.set_font(font_logical, style.font_size)
                         current_y = self.page_style.height - self.page_style.margins[1] - 15
 
@@ -752,7 +798,9 @@ class WimpyPDFGenerator:
                 # Check if we need a new page
                 if current_y < self.page_style.margins[3] + line_height:
                     self.canvas.showPage()
+                    page_num += 1
                     self._draw_page_background()
+                    self._add_page_number(page_num, renderer)
                     # re-apply font after the page switch
                     renderer.set_font(font_logical, style.font_size)
                     current_y = self.page_style.height - self.page_style.margins[1] - 15
@@ -763,7 +811,9 @@ class WimpyPDFGenerator:
                 for line in wrapped_lines:
                     if current_y < self.page_style.margins[3] + line_height:
                         self.canvas.showPage()
+                        page_num += 1
                         self._draw_page_background()
+                        self._add_page_number(page_num, renderer)
                         # re-apply font after the page switch
                         renderer.set_font(font_logical, style.font_size)
                         current_y = self.page_style.height - self.page_style.margins[1] - 15
@@ -775,7 +825,9 @@ class WimpyPDFGenerator:
                 # Check if we need a new page
                 if current_y < self.page_style.margins[3] + line_height:
                     self.canvas.showPage()
+                    page_num += 1
                     self._draw_page_background()
+                    self._add_page_number(page_num, renderer)
                     # re-apply font after the page switch
                     renderer.set_font(font_logical, style.font_size)
                     current_y = self.page_style.height - self.page_style.margins[1] - 15
@@ -798,7 +850,9 @@ class WimpyPDFGenerator:
                 for line_idx, line in enumerate(wrapped_lines):
                     if current_y < self.page_style.margins[3] + line_height:
                         self.canvas.showPage()
+                        page_num += 1
                         self._draw_page_background()
+                        self._add_page_number(page_num, renderer)
                         # re-apply font after the page switch
                         renderer.set_font(font_logical, style.font_size)
                         current_y = self.page_style.height - self.page_style.margins[1] - 15
@@ -813,7 +867,9 @@ class WimpyPDFGenerator:
                 for line in wrapped_lines:
                     if current_y < self.page_style.margins[3] + line_height:
                         self.canvas.showPage()
+                        page_num += 1
                         self._draw_page_background()
+                        self._add_page_number(page_num, renderer)
                         # re-apply font after the page switch
                         renderer.set_font(font_logical, style.font_size)
                         current_y = self.page_style.height - self.page_style.margins[1] - 15
