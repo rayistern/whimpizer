@@ -347,9 +347,6 @@ class MarkdownParser:
             return match.group(1).upper()
         text = re.sub(r"\*\*([^*]+?)\*\*", bold_repl, text)
 
-        # 'quoted' -> QUOTED  (single quotes)
-        text = re.sub(r"'([^']+?)'", lambda m: m.group(1).upper(), text)
-
         # *italic* -> ITALIC (single asterisk)
         text = re.sub(r"\*([^*]+?)\*", lambda m: m.group(1).upper(), text)
         return text
