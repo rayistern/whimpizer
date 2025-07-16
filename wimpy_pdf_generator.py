@@ -226,90 +226,8 @@ class HandwritingRenderer:
         self.current_size = 12
         self._registered_fonts = set()
         self._font_cache = {}  # Cache successful font registrations
-        self._glyph_cache = {}  # Cache glyph availability per font
     
-    def _has_glyph(self, text: str, font_name: str) -> bool:
-        """Check if the current font can render all characters in the text"""
-        # Simple cache key
-        cache_key = f"{font_name}_{hash(text)}"
-        if cache_key in self._glyph_cache:
-            return self._glyph_cache[cache_key]
-        
-        # Common problematic characters that often fail
-        problematic_chars = {
-            '•', '‐', '—', '–', ''', ''', '"', '"', '…', 
-            '●', '○', '◦', '▪', '▫', '◊', '→', '←', '↑', '↓',
-            '≤', '≥', '≠', '±', '×', '÷', '°', '™', '®', '©'
-        }
-        
-        # Check if text contains any problematic characters
-        has_problematic = any(char in problematic_chars for char in text)
-        
-        # If it's a custom font and has problematic chars, assume it might fail
-        if has_problematic and font_name.startswith('wimpy_'):
-            self._glyph_cache[cache_key] = False
-            return False
-        
-        # If it's Helvetica or system font, assume it works
-        if font_name in ['Helvetica', 'Comic Sans MS', 'Times-Roman']:
-            self._glyph_cache[cache_key] = True
-            return True
-        
-        # For custom fonts, try a more conservative approach
-        # We'll assume custom fonts can't handle special unicode characters
-        try:
-            # Check if all characters are basic ASCII or common extended Latin
-            for char in text:
-                code = ord(char)
-                if code > 255:  # Beyond extended ASCII
-                    self._glyph_cache[cache_key] = False
-                    return False
-            
-            self._glyph_cache[cache_key] = True
-            return True
-        except:
-            self._glyph_cache[cache_key] = False
-            return False
-    
-    def _clean_text_for_font(self, text: str) -> str:
-        """Clean text by replacing problematic characters with font-safe alternatives"""
-        replacements = {
-            '•': '*',
-            '‐': '-',
-            '—': '--',
-            '–': '-',
-            ''': "'",
-            ''': "'",
-            '"': '"',
-            '"': '"',
-            '…': '...',
-            '●': '*',
-            '○': 'o',
-            '◦': '*',
-            '▪': '*',
-            '▫': '*',
-            '◊': '*',
-            '→': '->',
-            '←': '<-',
-            '↑': '^',
-            '↓': 'v',
-            '≤': '<=',
-            '≥': '>=',
-            '≠': '!=',
-            '±': '+/-',
-            '×': 'x',
-            '÷': '/',
-            '°': ' deg',
-            '™': '(TM)',
-            '®': '(R)',
-            '©': '(C)'
-        }
-        
-        cleaned_text = text
-        for original, replacement in replacements.items():
-            cleaned_text = cleaned_text.replace(original, replacement)
-        
-        return cleaned_text
+
     
     def set_font(self, font_name: str, size: int):
         """Set the font for rendering"""
@@ -393,17 +311,6 @@ class HandwritingRenderer:
         if not self.current_font:
             self.set_font('body', style.font_size)
         
-        # Check if current font can handle the text, fall back to Helvetica if needed
-        original_font = self.current_font
-        render_text = text
-        
-        if not self._has_glyph(text, self.current_font):
-            print(f"Font {self.current_font} can't render all characters in: '{text[:50]}...' - falling back to Helvetica")
-            # Clean the text for better rendering
-            render_text = self._clean_text_for_font(text)
-            # Switch to Helvetica temporarily
-            self.canvas.setFont("Helvetica", self.current_size)
-        
         # Apply jitter for handwriting effect
         jitter_x = random.uniform(-style.x_jitter, style.x_jitter)
         jitter_y = random.uniform(-style.y_jitter, style.y_jitter)
@@ -424,27 +331,11 @@ class HandwritingRenderer:
             rotation = random.uniform(-style.rotation_jitter, style.rotation_jitter)
             self.canvas.rotate(rotation)
         
-        # Draw the text (cleaned if necessary)
-        try:
-            self.canvas.drawString(final_x, final_y, render_text)
-        except Exception as e:
-            print(f"Error drawing text '{render_text[:30]}...': {e}")
-            # Last resort: try with heavily cleaned text
-            safe_text = ''.join(c for c in render_text if ord(c) < 128)  # ASCII only
-            if safe_text.strip():
-                try:
-                    self.canvas.drawString(final_x, final_y, safe_text)
-                except:
-                    self.canvas.drawString(final_x, final_y, "[TEXT ERROR]")
-            else:
-                self.canvas.drawString(final_x, final_y, "[UNICODE ERROR]")
+        # Draw the text
+        self.canvas.drawString(final_x, final_y, text)
         
         # Restore state
         self.canvas.restoreState()
-        
-        # Restore original font if we switched
-        if original_font != "Helvetica" and not self._has_glyph(text, original_font):
-            self.canvas.setFont(original_font, self.current_size)
 
 
 class MarkdownParser:
