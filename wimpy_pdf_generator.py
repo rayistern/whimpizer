@@ -1057,6 +1057,15 @@ def read_file_content(file_path: str) -> Optional[str]:
             content = content.replace(chr(0x2043), '*')   # Hyphen bullet to asterisk
             content = content.replace(chr(0x25E6), '*')   # White bullet to asterisk
             content = content.replace(chr(0x2219), '*')   # Bullet operator to asterisk
+            
+            # Remove unwanted formatting elements
+            content = content.replace('---', '')          # Remove triple dashes
+            content = content.replace('_', '')            # Remove underscores
+            
+            # Fix double line breaks (replace with single)
+            import re
+            content = re.sub(r'\n\n+', '\n', content)     # Multiple newlines to single newline
+            
             return content
     except Exception as e:
         print(f"Error reading file {file_path}: {e}")
