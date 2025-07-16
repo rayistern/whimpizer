@@ -533,8 +533,8 @@ class WimpyPDFGenerator:
         lines = content.split('\n')
         parsed_content = [parser.parse_line(line) for line in lines]
         
-        # Filter out 'skip' elements
-        parsed_content = [item for item in parsed_content if item[0] != 'skip']
+        # Filter out 'skip', 'h1', and 'h3' elements
+        parsed_content = [item for item in parsed_content if item[0] not in ['skip', 'h1', 'h3']]
         
         # Setup page style
         if style == "notebook":
@@ -698,9 +698,7 @@ class WimpyPDFGenerator:
                 current_y -= line_height_base * EMPTY_LINE_MULTIPLIER
                 continue
 
-            # Skip h1 and h3 entirely (Wimpy Kid books have no visible headers)
-            if element_type in ['h1', 'h3']:
-                continue
+            # h1 and h3 elements are now filtered out during preprocessing
 
             # Get style for this element (h2 now shares paragraph style settings)
             style = self.text_styles.get(element_type, self.text_styles['paragraph'])
