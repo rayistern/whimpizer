@@ -14,6 +14,37 @@ from dataclasses import dataclass
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
 
+# ==== Global Wimpy Style Settings ====
+# Update these dicts to tweak the overall appearance in a single place
+FONT_SIZES = {
+    'paragraph': 18,
+    'h2': 18,
+    'list_item': 18,
+    'dialogue': 18,
+}
+
+LINE_SPACING = {
+    'paragraph': 1.325,
+    'h2': 0.7,
+    'list_item': 1.325,
+    'dialogue': 1.325,
+}
+
+JITTER = {
+    'paragraph': {'x': 1.0, 'y': 0.4, 'rot': 0.05},
+    'h2':        {'x': 1.0, 'y': 0.4, 'rot': 0.05},
+    'list_item': {'x': 1.0, 'y': 0.4, 'rot': 0.12},
+    'dialogue':  {'x': 1.5, 'y': 0.7, 'rot': 0.2},
+}
+
+PAGE_MARGINS = {
+    'notebook': (50, 33, 15, 50),
+    #left, top, right, bottom
+    'plain':    (72, 60, 15, 60),
+}
+
+TEXT_AREA_PADDING = 5
+
 try:
     from reportlab.lib.pagesizes import letter, A4
     from reportlab.pdfgen import canvas
@@ -410,16 +441,16 @@ class WimpyPDFGenerator:
         return {
             'paragraph': TextStyle(
                 font_path=body_font,
-                font_size=18,
+                font_size=FONT_SIZES['paragraph'],
                 color=(25, 25, 35),  # Slightly blue-black like ink
-                line_spacing=1.325,
-                x_jitter=1.0,
-                y_jitter=0.4,
-                rotation_jitter=0.05
+                line_spacing=LINE_SPACING['paragraph'],
+                x_jitter=JITTER['paragraph']['x'],
+                y_jitter=JITTER['paragraph']['y'],
+                rotation_jitter=JITTER['paragraph']['rot']
             ),
             'h1': TextStyle(
                 font_path=title_font,
-                font_size=27,
+                font_size=27,  # Kept for compatibility though h1 is skipped
                 color=(15, 15, 25),
                 line_spacing=1.19,
                 x_jitter=1.5,
@@ -428,16 +459,16 @@ class WimpyPDFGenerator:
             ),
             'h2': TextStyle(
                 font_path=body_font,  # Use regular body font for h2
-                font_size=self.text_styles['paragraph'].font_size if hasattr(self, 'text_styles') and 'paragraph' in self.text_styles else 18,
+                font_size=FONT_SIZES['h2'],
                 color=(25, 25, 35),  # Same ink colour as paragraph
-                line_spacing=self.text_styles['paragraph'].line_spacing if hasattr(self, 'text_styles') and 'paragraph' in self.text_styles else 1.325,
-                x_jitter=self.text_styles['paragraph'].x_jitter if hasattr(self, 'text_styles') and 'paragraph' in self.text_styles else 1.0,
-                y_jitter=self.text_styles['paragraph'].y_jitter if hasattr(self, 'text_styles') and 'paragraph' in self.text_styles else 0.4,
-                rotation_jitter=self.text_styles['paragraph'].rotation_jitter if hasattr(self, 'text_styles') and 'paragraph' in self.text_styles else 0.05
+                line_spacing=LINE_SPACING['h2'],
+                x_jitter=JITTER['h2']['x'],
+                y_jitter=JITTER['h2']['y'],
+                rotation_jitter=JITTER['h2']['rot']
             ),
             'h3': TextStyle(
                 font_path=title_font,
-                font_size=18,
+                font_size=18,  # Kept for compatibility though h3 is skipped
                 color=(20, 20, 30),
                 line_spacing=0.95,
                 x_jitter=1.1,
@@ -446,21 +477,21 @@ class WimpyPDFGenerator:
             ),
             'list_item': TextStyle(
                 font_path=body_font,
-                font_size=18,
+                font_size=FONT_SIZES['list_item'],
                 color=(30, 30, 40),
-                line_spacing=1.325,
-                x_jitter=1.0,
-                y_jitter=0.4,
-                rotation_jitter=0.12
+                line_spacing=LINE_SPACING['list_item'],
+                x_jitter=JITTER['list_item']['x'],
+                y_jitter=JITTER['list_item']['y'],
+                rotation_jitter=JITTER['list_item']['rot']
             ),
             'dialogue': TextStyle(
                 font_path=dialogue_font,
-                font_size=18,
+                font_size=FONT_SIZES['dialogue'],
                 color=(40, 20, 60),  # Slightly purple for dialogue
-                line_spacing=1.325,
-                x_jitter=1.5,
-                y_jitter=0.7,
-                rotation_jitter=0.2
+                line_spacing=LINE_SPACING['dialogue'],
+                x_jitter=JITTER['dialogue']['x'],
+                y_jitter=JITTER['dialogue']['y'],
+                rotation_jitter=JITTER['dialogue']['rot']
             )
         }
     
@@ -479,13 +510,13 @@ class WimpyPDFGenerator:
                 print("Warning: Using default notebook background (no single_page.png found)")
             self.page_style = PageStyle(
                 background_image=bg_image,
-                margins=(70, 71, 15, 60),  # Reduced top from 90→78, bottom from 72→60
-                text_area_padding=5
+                margins=PAGE_MARGINS['notebook'],
+                text_area_padding=TEXT_AREA_PADDING
             )
         else:
             self.page_style = PageStyle(
-                margins=(72, 60, 15, 60),  # Reduced top from 72→60, bottom from 72→60
-                text_area_padding=5
+                margins=PAGE_MARGINS['plain'],
+                text_area_padding=TEXT_AREA_PADDING
             )
         
         # Create canvas
@@ -589,8 +620,9 @@ class WimpyPDFGenerator:
             style = self.text_styles.get(element_type, self.text_styles['paragraph'])
             
             # Set font
-            font_name = style.font_path or 'body'
-            renderer.set_font(font_name, style.font_size)
+            font_logical = style.font_path or 'body'
+            renderer.set_font(font_logical, style.font_size)
+            font_name = renderer.current_font  # use the registered font identifier
             
             # Calculate line height
             line_height = line_height_base * style.line_spacing
@@ -602,7 +634,7 @@ class WimpyPDFGenerator:
                 if current_y < self.page_style.margins[3] + line_height:
                     self.canvas.showPage()
                     self._draw_page_background()
-                    renderer.set_font(font_name, style.font_size)
+                    renderer.set_font(font_logical, style.font_size)
                     current_y = self.page_style.height - self.page_style.margins[1] - 15
 
                 wrapped_lines = self._wrap_text(content, font_name, style.font_size, text_width)
@@ -610,7 +642,7 @@ class WimpyPDFGenerator:
                     if current_y < self.page_style.margins[3] + line_height:
                         self.canvas.showPage()
                         self._draw_page_background()
-                        renderer.set_font(font_name, style.font_size)
+                        renderer.set_font(font_logical, style.font_size)
                         current_y = self.page_style.height - self.page_style.margins[1] - 15
 
                     # Draw the text
@@ -638,7 +670,7 @@ class WimpyPDFGenerator:
                     self.canvas.showPage()
                     self._draw_page_background()
                     # re-apply font after the page switch
-                    renderer.set_font(font_name, style.font_size)
+                    renderer.set_font(font_logical, style.font_size)
                     current_y = self.page_style.height - self.page_style.margins[1] - 15
                 
                 # Indent dialogue slightly
@@ -649,7 +681,7 @@ class WimpyPDFGenerator:
                         self.canvas.showPage()
                         self._draw_page_background()
                         # re-apply font after the page switch
-                        renderer.set_font(font_name, style.font_size)
+                        renderer.set_font(font_logical, style.font_size)
                         current_y = self.page_style.height - self.page_style.margins[1] - 15
                     
                     renderer.draw_text_with_effects(line, dialogue_x, current_y, style)
@@ -661,7 +693,7 @@ class WimpyPDFGenerator:
                     self.canvas.showPage()
                     self._draw_page_background()
                     # re-apply font after the page switch
-                    renderer.set_font(font_name, style.font_size)
+                    renderer.set_font(font_logical, style.font_size)
                     current_y = self.page_style.height - self.page_style.margins[1] - 15
                 
                 # Draw a tiny filled-circle bullet that doesn't depend on font glyphs
@@ -684,7 +716,7 @@ class WimpyPDFGenerator:
                         self.canvas.showPage()
                         self._draw_page_background()
                         # re-apply font after the page switch
-                        renderer.set_font(font_name, style.font_size)
+                        renderer.set_font(font_logical, style.font_size)
                         current_y = self.page_style.height - self.page_style.margins[1] - 15
                     
                     x_offset = 25  # Indent list items
@@ -699,7 +731,7 @@ class WimpyPDFGenerator:
                         self.canvas.showPage()
                         self._draw_page_background()
                         # re-apply font after the page switch
-                        renderer.set_font(font_name, style.font_size)
+                        renderer.set_font(font_logical, style.font_size)
                         current_y = self.page_style.height - self.page_style.margins[1] - 15
                     
                     renderer.draw_text_with_effects(line, text_x, current_y, style)
@@ -709,34 +741,42 @@ class WimpyPDFGenerator:
                 current_y -= line_height * 0.4
     
     def _wrap_text(self, text: str, font_name: str, font_size: int, max_width: float) -> List[str]:
-        """Wrap text to fit within the specified width"""
+        """Word-wrap using actual font metrics so all lines stay inside margins"""
         if not text.strip():
             return ['']
-        
-        # Estimate character width (Wimpy Kid fonts are actually narrower than estimated)
-        avg_char_width = font_size * 0.5  # Reduced from 0.7 to 0.5
-        chars_per_line = int(max_width / avg_char_width)
-        
-        # Use textwrap for basic wrapping, but be more aggressive
-        wrapper = textwrap.TextWrapper(
-            width=max(chars_per_line, 25),  # Increased minimum from 15 to 25
-            break_long_words=True,
-            break_on_hyphens=True,
-            expand_tabs=True,
-            replace_whitespace=True,
-            drop_whitespace=True
-        )
-        
-        wrapped = wrapper.wrap(text)
-        
-        # If we still get very short lines, try to be even more aggressive
-        if wrapped and len(wrapped[0]) < 30 and len(text) > 40:
-            # Try with even more characters per line
-            chars_per_line = int(max_width / (font_size * 0.4))
-            wrapper.width = max(chars_per_line, 35)
-            wrapped = wrapper.wrap(text)
-        
-        return wrapped if wrapped else ['']
+
+        words = text.strip().split()
+        lines: List[str] = []
+        current_line = ""
+
+        for word in words:
+            test_line = (current_line + " " + word).strip() if current_line else word
+            line_width = self.canvas.stringWidth(test_line, font_name, font_size)
+
+            if line_width <= max_width:
+                current_line = test_line
+            else:
+                if current_line:
+                    lines.append(current_line)
+                # Handle very long words that exceed max width alone
+                if self.canvas.stringWidth(word, font_name, font_size) > max_width:
+                    split_word = word
+                    while self.canvas.stringWidth(split_word, font_name, font_size) > max_width and len(split_word) > 1:
+                        # progressively shorten until it fits, add hyphen
+                        part = split_word[:max(1, int(max_width // (font_size * 0.6)))]
+                        # ensure at least one char
+                        while self.canvas.stringWidth(part + '-', font_name, font_size) > max_width and len(part) > 1:
+                            part = part[:-1]
+                        lines.append(part + '-')
+                        split_word = split_word[len(part):]
+                    current_line = split_word
+                else:
+                    current_line = word
+
+        if current_line:
+            lines.append(current_line)
+
+        return lines
 
 
 def read_file_content(file_path: str) -> Optional[str]:
