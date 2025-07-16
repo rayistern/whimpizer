@@ -41,6 +41,24 @@ This document summarizes the recent improvements to the Wimpy PDF Generator, wit
   - Prevents unprofessional-looking headers stranded at page bottoms
   - Maintains proper typography standards
 
+### 3. **Blank Line Removal at Page Starts** (Commit: 31af98b)
+**Files Changed:** `wimpy_pdf_generator.py`
+
+**New Feature:**
+- ✅ **Page start detection**
+  - Tracks when we're at the beginning of a new page
+  - Maintains state across page breaks and content rendering
+
+- ✅ **Automatic blank line elimination**
+  - Skips empty elements that would appear at the top of pages  
+  - Prevents unprofessional blank space at page beginnings
+  - Debug logging to track when blank lines are removed
+
+- ✅ **Smart state management**
+  - Resets tracking after every page break (showPage() call)
+  - Updates flag when rendering actual content
+  - Works across all content types (paragraphs, headers, lists, dialogue)
+
 ## Sample PDFs Generated
 
 ### Character Handling Samples
@@ -52,6 +70,10 @@ This document summarizes the recent improvements to the Wimpy PDF Generator, wit
 ### Orphan Header Prevention Samples
 - ✅ **`sample_before_orphan_fix.pdf`** - Shows behavior before orphan prevention
 - ✅ **`sample_after_orphan_fix.pdf`** - Shows improved layout with orphan prevention
+
+### Blank Line Removal Samples
+- ✅ **`sample_before_blank_line_fix.pdf`** - Shows original behavior with blank lines at page starts
+- ✅ **`sample_after_blank_line_fix.pdf`** - Shows clean pages without leading blank lines
 
 ## Technical Implementation
 
