@@ -11,9 +11,6 @@ httpx==0.25.2
 # Redis for job queue
 redis==5.0.1
 
-# Background tasks (alternative to Celery for now)
-asyncio
-
 # Configuration
 python-dotenv==1.0.0
 PyYAML==6.0.1
@@ -26,9 +23,11 @@ openai==1.12.0
 anthropic==0.7.7
 google-generativeai==0.3.1
 reportlab==4.0.7
-Pillow==10.1.0
+Pillow==10.4.0
 
 # Development and testing
 pytest==7.4.3
 pytest-asyncio==0.21.1
-clerk-backend-api==0.2.1
+
+# Clerk (optional - for authentication) - using latest compatible version
+clerk-backend-api==3.0.5
