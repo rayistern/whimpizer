@@ -37,7 +37,7 @@ except ImportError:
 class TextStyle:
     """Configuration for text styling"""
     font_path: Optional[str] = None
-    font_size: int = 12
+    font_size: int = 18
     color: Tuple[int, int, int] = (0, 0, 0)  # RGB
     line_spacing: float = 1.2
     x_jitter: float = 1.0
@@ -298,40 +298,74 @@ class HandwritingRenderer:
 
 
 class MarkdownParser:
-    """Parse basic markdown elements"""
+    """Parse basic markdown elements with extra Wimpy-style tweaks"""
     
+    @staticmethod
+    def _apply_inline_formatting(text: str) -> str:
+        """Convert **bold**, *italic*, and 'quoted' segments to UPPERCASE plain text"""
+        # **bold** -> BOLD (remove asterisks, uppercase)
+        def bold_repl(match):
+            return match.group(1).upper()
+        text = re.sub(r"\*\*([^*]+?)\*\*", bold_repl, text)
+
+        # 'quoted' -> QUOTED  (single quotes)
+        text = re.sub(r"'([^']+?)'", lambda m: m.group(1).upper(), text)
+
+        # *italic* -> ITALIC (single asterisk)
+        text = re.sub(r"\*([^*]+?)\*", lambda m: m.group(1).upper(), text)
+        return text
+
     @staticmethod
     def parse_line(line: str) -> Tuple[str, str, str]:
         """
         Parse a line and return (element_type, content, original_line)
         element_type can be: 'h1', 'h2', 'h3', 'list_item', 'paragraph', 'empty', 'dialogue'
+        Additional rules:
+        • Lines starting with '>' are treated as dialogue after stripping the '>'.
+        • #### headers are downgraded to 'h3'.
+        • Inline **bold**, *italic*, and 'quoted' phrases are capitalised and markers removed.
         """
-        line = line.rstrip()
-        
+        original_line = line.rstrip("\n")
+        line = original_line.rstrip()
+
         if not line.strip():
-            return 'empty', '', line
-        
-        # Check for dialogue (quoted text)
-        # Accept both straight (") and curly opening quotes (U+201C)
-        if line.strip().startswith(('"', '“')):
-            return 'dialogue', line.strip(), line
-        
+            return 'empty', '', original_line
+
+        # Handle blockquote / dialogue indicator
+        is_blockquote = False
+        if line.lstrip().startswith('>'):
+            is_blockquote = True
+            # remove leading '>' and following spaces
+            line = re.sub(r"^\s*>\s*", '', line.lstrip())
+
+        # After stripping '>', treat as dialogue if the line began with blockquote
+        if is_blockquote:
+            content = MarkdownParser._apply_inline_formatting(line.strip())
+            return 'dialogue', content, original_line
+
+        # Check for explicit dialogue beginning with quotes
+        if line.strip().startswith(("\"", '“')):
+            content = MarkdownParser._apply_inline_formatting(line.strip())
+            return 'dialogue', content, original_line
+
         # Headers
         if line.startswith('# '):
-            return 'h1', line[2:].strip(), line
+            return 'h1', MarkdownParser._apply_inline_formatting(line[2:].strip()), original_line
         elif line.startswith('## '):
-            return 'h2', line[3:].strip(), line
+            return 'h2', MarkdownParser._apply_inline_formatting(line[3:].strip()), original_line
         elif line.startswith('### '):
-            return 'h3', line[4:].strip(), line
-        
+            return 'h3', MarkdownParser._apply_inline_formatting(line[4:].strip()), original_line
+        elif line.startswith('#### '):  # treat 4-hash as h3/bold header
+            return 'h3', MarkdownParser._apply_inline_formatting(line[5:].strip()), original_line
+
         # Lists
         list_match = re.match(r'^(\s*)([-*+]|\d+\.)\s+(.+)$', line)
         if list_match:
-            indent, marker, content = list_match.groups()
-            return 'list_item', content.strip(), line
-        
+            _, _, content = list_match.groups()
+            return 'list_item', MarkdownParser._apply_inline_formatting(content.strip()), original_line
+
         # Regular paragraph
-        return 'paragraph', line.strip(), line
+        return 'paragraph', MarkdownParser._apply_inline_formatting(line.strip()), original_line
 
 
 class WimpyPDFGenerator:
@@ -376,16 +410,16 @@ class WimpyPDFGenerator:
         return {
             'paragraph': TextStyle(
                 font_path=body_font,
-                font_size=12,
+                font_size=18,
                 color=(25, 25, 35),  # Slightly blue-black like ink
-                line_spacing=1.2,
+                line_spacing=1.37,
                 x_jitter=1.2,
                 y_jitter=0.6,
                 rotation_jitter=0.15
             ),
             'h1': TextStyle(
                 font_path=title_font,
-                font_size=18,
+                font_size=22,
                 color=(15, 15, 25),
                 line_spacing=1.3,
                 x_jitter=1.5,
@@ -394,7 +428,7 @@ class WimpyPDFGenerator:
             ),
             'h2': TextStyle(
                 font_path=title_font,
-                font_size=15,
+                font_size=17,
                 color=(15, 15, 25),
                 line_spacing=1.25,
                 x_jitter=1.3,
@@ -403,7 +437,7 @@ class WimpyPDFGenerator:
             ),
             'h3': TextStyle(
                 font_path=title_font,
-                font_size=13,
+                font_size=18,
                 color=(20, 20, 30),
                 line_spacing=1.2,
                 x_jitter=1.1,
@@ -412,7 +446,7 @@ class WimpyPDFGenerator:
             ),
             'list_item': TextStyle(
                 font_path=body_font,
-                font_size=11,
+                font_size=18,
                 color=(30, 30, 40),
                 line_spacing=1.15,
                 x_jitter=1.0,
@@ -421,9 +455,9 @@ class WimpyPDFGenerator:
             ),
             'dialogue': TextStyle(
                 font_path=dialogue_font,
-                font_size=11,
+                font_size=18,
                 color=(40, 20, 60),  # Slightly purple for dialogue
-                line_spacing=1.3,
+                line_spacing=1.33,
                 x_jitter=1.5,
                 y_jitter=0.7,
                 rotation_jitter=0.2
@@ -682,54 +716,6 @@ class WimpyPDFGenerator:
         return wrapped if wrapped else ['']
 
 
-def wimpy_postprocess_text(content: str) -> str:
-    """Post-process text for Wimpy Kid style formatting"""
-    import re
-    
-    lines = content.split('\n')
-    processed_lines = []
-    
-    for line in lines:
-        # Step 1: Track if this line originally started with '>' for dialogue handling
-        was_dialogue_line = line.strip().startswith('>')
-        
-        # Remove '>' characters
-        line = re.sub(r'^>\s*', '', line)
-        
-        # Step 2: Handle #### headings first (preserve as bold headings)
-        heading_match = re.match(r'^####\s*(.+)$', line)
-        if heading_match:
-            heading_content = heading_match.group(1)
-            # Process heading content but keep it bold
-            heading_content = re.sub(r'\*\*(.*?)\*\*', lambda m: m.group(1).upper(), heading_content)
-            heading_content = re.sub(r'\*([^*]+)\*', lambda m: m.group(1).upper(), heading_content)
-            heading_content = re.sub(r"'([^']+)'", lambda m: m.group(1).upper(), heading_content)
-            line = f"**{heading_content}**"
-        else:
-            # Step 3: Convert **bold** text to CAPITALIZED TEXT
-            line = re.sub(r'\*\*(.*?)\*\*', lambda m: m.group(1).upper(), line)
-            
-            # Step 4: Convert *italic* text to **BOLD** TEXT
-            line = re.sub(r'\*([^*]+)\*', lambda m: f"**{m.group(1).upper()}**", line)
-            
-            # Step 5: Convert 'quoted' text to CAPITALIZED TEXT (only closed quotes)
-            line = re.sub(r"'([^']+)'", lambda m: m.group(1).upper(), line)
-            
-            # Step 6: Handle unclosed quotes on original > lines as dialogue
-            if was_dialogue_line:
-                # Look for opening quote without closing quote at end of line
-                quote_match = re.search(r'"([^"]+)$', line)
-                if quote_match:
-                    # Mark the text after the quote as dialogue
-                    before_quote = line[:quote_match.start()]
-                    dialogue_text = quote_match.group(1)
-                    line = f'{before_quote}"{dialogue_text}"'
-        
-        processed_lines.append(line)
-    
-    return '\n'.join(processed_lines)
-
-
 def read_file_content(file_path: str) -> Optional[str]:
     """Read content from a text file"""
     try:
@@ -746,10 +732,6 @@ def read_file_content(file_path: str) -> Optional[str]:
             # Additional apostrophe variants that might cause issues
             content = content.replace('`', "'")   # Grave accent to apostrophe
             content = content.replace('´', "'")   # Acute accent to apostrophe
-            
-            # Apply Wimpy Kid style post-processing
-            content = wimpy_postprocess_text(content)
-            
             return content
     except Exception as e:
         print(f"Error reading file {file_path}: {e}")
