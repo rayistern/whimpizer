@@ -2,15 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Wimpy Kid Font Imports */
+@font-face {
+  font-family: 'WimpyKid';
+  src: url('/fonts/WimpyKid (1).ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'WimpyKidDialogue';
+  src: url('/fonts/WimpyKidDialogue (1).ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'WimpyCover';
+  src: url('/fonts/Wimpycoverv2-Regular (1).ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rowley';
+  src: url('/fonts/Rowley2.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Kongtext';
+  src: url('/fonts/Kongtext (2).ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Custom Wimpy Kid themed styles */
 @layer base {
   body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'WimpyKidDialogue', 'Comic Sans MS', cursive;
     background-color: #f8fafc;
   }
   
   h1, h2, h3 {
-    font-family: 'Comic Sans MS', cursive;
+    font-family: 'WimpyKid', 'Comic Sans MS', cursive;
   }
 }
 
@@ -61,8 +102,18 @@
   }
   
   .comic-style {
-    font-family: 'Comic Sans MS', cursive;
+    font-family: 'WimpyKid', 'Comic Sans MS', cursive;
     font-weight: bold;
     text-shadow: 2px 2px 0px #000;
+  }
+  
+  .wimpy-dialogue {
+    font-family: 'WimpyKidDialogue', 'Comic Sans MS', cursive;
+  }
+  
+  .wimpy-cover {
+    font-family: 'WimpyCover', 'Impact', sans-serif;
+    font-weight: bold;
+    letter-spacing: 0.05em;
   }
 }

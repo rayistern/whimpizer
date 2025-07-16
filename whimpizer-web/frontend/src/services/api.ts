@@ -10,6 +10,15 @@ export const api = axios.create({
   },
 });
 
+// Function to set auth token
+export const setAuthToken = (token: string | null) => {
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+  }
+};
+
 // Types for API responses
 export interface JobConfig {
   ai_provider: 'openai' | 'anthropic' | 'google';
@@ -17,6 +26,11 @@ export interface JobConfig {
   pdf_style: string;
   combine_by_group: boolean;
   temperature: number;
+  max_tokens: number;
+  story_tone: string;
+  target_age: string;
+  include_source_urls: boolean;
+  custom_prompt_addition: string;
 }
 
 export interface JobSubmissionRequest {

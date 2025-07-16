@@ -17,8 +17,11 @@ export default {
         }
       },
       fontFamily: {
-        'comic': ['Comic Sans MS', 'cursive'],
-        'wimpy': ['Arial', 'sans-serif']
+        'wimpy': ['WimpyKid', 'Comic Sans MS', 'cursive'],
+        'wimpy-dialogue': ['WimpyKidDialogue', 'Comic Sans MS', 'cursive'],
+        'wimpy-cover': ['WimpyCover', 'Impact', 'sans-serif'],
+        'rowley': ['Rowley', 'Comic Sans MS', 'cursive'],
+        'kong': ['Kongtext', 'monospace', 'cursive']
       }
     },
   },

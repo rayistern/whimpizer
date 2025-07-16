@@ -27,6 +27,11 @@ class JobConfig(BaseModel):
     pdf_style: str = "handwritten"
     combine_by_group: bool = True
     temperature: float = 0.7
+    max_tokens: int = 4000
+    story_tone: str = "funny"  # funny, dramatic, chill, sarcastic
+    target_age: str = "middle_school"  # elementary, middle_school, high_school
+    include_source_urls: bool = False
+    custom_prompt_addition: str = ""
     
 class JobSubmissionRequest(BaseModel):
     """Request model for submitting a new job"""
@@ -56,6 +61,7 @@ class JobInfo(BaseModel):
     message: str
     config: JobConfig
     urls: List[str]
+    user_id: Optional[str] = None  # Clerk user ID
     created_at: datetime
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None

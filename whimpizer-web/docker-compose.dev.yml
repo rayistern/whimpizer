@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # Open Source Portkey Gateway
+  portkey:
+    image: portkeyai/gateway:latest
+    ports:
+      - "8787:8000"
+    environment:
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./portkey-config:/app/config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Redis for job queue and session storage
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - USE_OPEN_SOURCE_PORTKEY=true
+      - AI_BASE_URL=http://portkey:8000
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - DEBUG=${DEBUG:-true}
+      - ENVIRONMENT=development
+    volumes:
+      # Mount original whimpizer code for development
+      - ../src:/app/whimpizer_src:ro
+      - ../resources:/app/whimpizer_resources:ro  
+      - ../config:/app/whimpizer_config:ro
+      # Persistent storage for uploads and outputs
+      - backend_uploads:/app/uploads
+      - backend_outputs:/app/outputs
+      - backend_logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+      portkey:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Frontend (React app) - for development
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    stdin_open: true
+    tty: true
+
+volumes:
+  redis_data:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_outputs:
+    driver: local
+  backend_logs:
+    driver: local
+
+networks:
+  default:
+    name: whimpizer-dev-network

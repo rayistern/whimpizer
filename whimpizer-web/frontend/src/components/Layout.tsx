@@ -1,5 +1,6 @@
 import React from 'react';
-import { BookOpen, Home, List, Info } from 'lucide-react';
+import { BookOpen, Home, List, Info, User, LogOut } from 'lucide-react';
+import { useAuth, useUser, SignInButton, UserButton } from '@clerk/clerk-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -7,6 +8,9 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, currentPage = 'home' }) => {
+  const { isSignedIn, isLoaded } = useAuth();
+  const { user } = useUser();
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-yellow-50">
       {/* Header */}
@@ -51,11 +55,40 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage = 'home' }) => {
               />
             </nav>
 
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button className="btn-secondary text-sm px-4 py-2">
-                Menu
-              </button>
+            {/* Authentication */}
+            <div className="flex items-center space-x-4">
+              {isLoaded && (
+                <>
+                  {isSignedIn ? (
+                    <div className="flex items-center space-x-3">
+                      <span className="text-sm text-gray-600 hidden md:block">
+                        Hey there, {user?.firstName || 'Greg'}! 👋
+                      </span>
+                      <UserButton 
+                        appearance={{
+                          elements: {
+                            avatarBox: "w-8 h-8"
+                          }
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <SignInButton mode="modal">
+                      <button className="btn-primary flex items-center space-x-2">
+                        <User className="h-4 w-4" />
+                        <span>Sign In</span>
+                      </button>
+                    </SignInButton>
+                  )}
+                </>
+              )}
+              
+              {/* Mobile menu button */}
+              <div className="md:hidden">
+                <button className="btn-secondary text-sm px-4 py-2">
+                  Menu
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Layout from './components/Layout';
 import HomePage from './components/HomePage';
 import JobStatus from './components/JobStatus';
+import ClerkProvider from './components/ClerkProvider';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -29,39 +30,41 @@ function App() {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Layout currentPage={currentView === 'home' ? 'home' : 'status'}>
-        {currentView === 'home' ? (
-          <HomePage onJobSubmitted={handleJobSubmitted} />
-        ) : currentJobId ? (
-          <div className="space-y-6">
-            {/* Back to home button */}
-            <div className="flex items-center justify-between">
-              <button
-                onClick={handleBackToHome}
-                className="btn-secondary flex items-center space-x-2"
-              >
-                <span>←</span>
-                <span>Create Another Story</span>
-              </button>
-              
-              <div className="text-sm text-gray-600">
-                Tip: Bookmark this page to check your job later!
+    <ClerkProvider>
+      <QueryClientProvider client={queryClient}>
+        <Layout currentPage={currentView === 'home' ? 'home' : 'status'}>
+          {currentView === 'home' ? (
+            <HomePage onJobSubmitted={handleJobSubmitted} />
+          ) : currentJobId ? (
+            <div className="space-y-6">
+              {/* Back to home button */}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={handleBackToHome}
+                  className="btn-secondary flex items-center space-x-2"
+                >
+                  <span>←</span>
+                  <span>Create Another Story</span>
+                </button>
+                
+                <div className="text-sm text-gray-600">
+                  Tip: Bookmark this page to check your job later!
+                </div>
               </div>
+              
+              <JobStatus jobId={currentJobId} />
             </div>
-            
-            <JobStatus jobId={currentJobId} />
-          </div>
-        ) : (
-          <div className="text-center">
-            <p className="text-gray-600">No job selected.</p>
-            <button onClick={handleBackToHome} className="btn-primary mt-4">
-              Go Home
-            </button>
-          </div>
-        )}
-      </Layout>
-    </QueryClientProvider>
+          ) : (
+            <div className="text-center">
+              <p className="text-gray-600">No job selected.</p>
+              <button onClick={handleBackToHome} className="btn-primary mt-4">
+                Go Home
+              </button>
+            </div>
+          )}
+        </Layout>
+      </QueryClientProvider>
+    </ClerkProvider>
   );
 }
 

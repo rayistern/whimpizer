@@ -113,7 +113,8 @@ class JobManager:
         self, 
         page: int = 1, 
         size: int = 10, 
-        status: Optional[JobStatus] = None
+        status: Optional[JobStatus] = None,
+        user_id: Optional[str] = None
     ) -> Tuple[List[JobInfo], int]:
         """List jobs with pagination and optional status filter"""
         try:
@@ -127,6 +128,9 @@ class JobManager:
             for job_id in job_ids:
                 job_info = await self.get_job(job_id)
                 if job_info and (not status or job_info.status == status):
+                    # Filter by user if specified
+                    if user_id and job_info.user_id != user_id:
+                        continue
                     jobs.append(job_info)
             
             # Get total count

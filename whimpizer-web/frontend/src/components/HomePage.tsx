@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Plus, Trash2, Globe, Wand2, Settings, AlertCircle } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { whimpizerAPI, type JobSubmissionRequest } from '../services/api';
+import { useAuth } from '../hooks/useAuth';
 
 interface HomePageProps {
   onJobSubmitted?: (jobId: string) => void;
 }
 
 const HomePage: React.FC<HomePageProps> = ({ onJobSubmitted }) => {
+  const { isSignedIn } = useAuth();
   const [urls, setUrls] = useState<string[]>(['']);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [config, setConfig] = useState({
@@ -16,6 +18,11 @@ const HomePage: React.FC<HomePageProps> = ({ onJobSubmitted }) => {
     pdf_style: 'handwritten',
     combine_by_group: true,
     temperature: 0.7,
+    max_tokens: 4000,
+    story_tone: 'funny',
+    target_age: 'middle_school',
+    include_source_urls: false,
+    custom_prompt_addition: '',
   });
 
   // Fetch available providers
@@ -235,8 +242,90 @@ const HomePage: React.FC<HomePageProps> = ({ onJobSubmitted }) => {
                   </div>
                 </div>
 
-                {/* Combine Content */}
+                {/* Max Tokens */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Story Length: {config.max_tokens} tokens
+                  </label>
+                  <input
+                    type="range"
+                    min="1000"
+                    max="8000"
+                    step="500"
+                    value={config.max_tokens}
+                    onChange={(e) => setConfig({ ...config, max_tokens: parseInt(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>Short & Sweet</span>
+                    <span>Epic Novel</span>
+                  </div>
+                </div>
+
+                {/* Story Tone */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Story Tone
+                  </label>
+                  <select
+                    value={config.story_tone}
+                    onChange={(e) => setConfig({ ...config, story_tone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-wimpy-blue focus:ring-wimpy-blue"
+                  >
+                    <option value="funny">😂 Super Funny (Classic Greg)</option>
+                    <option value="dramatic">🎭 Dramatic & Emotional</option>
+                    <option value="chill">😎 Chill & Relaxed</option>
+                    <option value="sarcastic">🙄 Extra Sarcastic</option>
+                  </select>
+                </div>
+
+                {/* Target Age */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Target Audience
+                  </label>
+                  <select
+                    value={config.target_age}
+                    onChange={(e) => setConfig({ ...config, target_age: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-wimpy-blue focus:ring-wimpy-blue"
+                  >
+                    <option value="elementary">🎈 Elementary School (Ages 6-10)</option>
+                    <option value="middle_school">📚 Middle School (Ages 11-14)</option>
+                    <option value="high_school">🎓 High School (Ages 15-18)</option>
+                  </select>
+                </div>
+
+                {/* Custom Prompt Addition */}
                 <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Custom Instructions (Optional)
+                  </label>
+                  <textarea
+                    value={config.custom_prompt_addition}
+                    onChange={(e) => setConfig({ ...config, custom_prompt_addition: e.target.value })}
+                    placeholder="Add any special instructions for Greg... (e.g., 'Include more about friendship', 'Focus on school adventures', etc.)"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-wimpy-blue focus:ring-wimpy-blue resize-none"
+                    rows={3}
+                  />
+                </div>
+
+                {/* Include Source URLs */}
+                <div>
+                  <label className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={config.include_source_urls}
+                      onChange={(e) => setConfig({ ...config, include_source_urls: e.target.checked })}
+                      className="w-4 h-4 text-wimpy-blue border-gray-300 rounded focus:ring-wimpy-blue"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      Include source URLs in the story
+                    </span>
+                  </label>
+                </div>
+
+                {/* Combine Content */}
+                <div>
                   <label className="flex items-center space-x-3">
                     <input
                       type="checkbox"

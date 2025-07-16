@@ -172,10 +172,15 @@ class WhimpizerService:
             
             # Combine all content if requested
             if config.combine_by_group:
-                combined_content = "\n\n---\n\n".join([
-                    f"Source: {item['url']}\n\n{item['content']}"
-                    for item in downloaded_content
-                ])
+                if config.include_source_urls:
+                    combined_content = "\n\n---\n\n".join([
+                        f"Source: {item['url']}\n\n{item['content']}"
+                        for item in downloaded_content
+                    ])
+                else:
+                    combined_content = "\n\n---\n\n".join([
+                        item['content'] for item in downloaded_content
+                    ])
                 
                 # Process with AI
                 whimperized_content = await self.ai_service.whimperize_content(

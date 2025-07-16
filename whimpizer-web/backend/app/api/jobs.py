@@ -14,6 +14,7 @@ from app.models.jobs import (
 )
 from app.services.job_manager import JobManager
 from app.services.whimpizer_service import WhimpizerService
+from app.core.auth import get_current_user, require_auth
 
 router = APIRouter()
 job_manager = JobManager()
@@ -22,7 +23,8 @@ whimpizer_service = WhimpizerService()
 @router.post("/", response_model=JobResponse)
 async def submit_job(
     request: JobSubmissionRequest,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    current_user: dict = Depends(get_current_user)
 ):
     """Submit a new whimpizer job"""
     try:
@@ -37,6 +39,7 @@ async def submit_job(
             message="Job submitted successfully",
             config=request.config,
             urls=[str(url) for url in request.urls],
+            user_id=current_user.get("sub") if current_user else None,
             created_at=datetime.utcnow()
         )
         
@@ -76,11 +79,13 @@ async def get_job_status(job_id: str):
 async def list_jobs(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
-    status: Optional[JobStatus] = None
+    status: Optional[JobStatus] = None,
+    current_user: dict = Depends(get_current_user)
 ):
     """List jobs with pagination"""
     try:
-        jobs, total = await job_manager.list_jobs(page=page, size=size, status=status)
+        user_id = current_user.get("sub") if current_user else None
+        jobs, total = await job_manager.list_jobs(page=page, size=size, status=status, user_id=user_id)
         return JobListResponse(
             jobs=jobs,
             total=total,

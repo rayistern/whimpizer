@@ -22,11 +22,19 @@ class Settings(BaseSettings):
     # Redis settings for job queue
     REDIS_URL: str = "redis://localhost:6379"
     
-    # AI Provider settings (Portkey configuration)
-    AI_BASE_URL: str = "https://api.portkey.ai/v1"  # Portkey gateway
-    AI_API_KEY: str = ""  # Portkey API key
+    # AI Provider settings (Open Source Portkey or Cloud)
+    USE_OPEN_SOURCE_PORTKEY: bool = True  # Use self-hosted vs cloud
+    AI_BASE_URL: str = "http://localhost:8787"  # Open source default port
+    # If using cloud: "https://api.portkey.ai/v1"
+    
+    AI_API_KEY: str = ""  # Your actual provider API key (OpenAI, Anthropic, etc.)
     AI_DEFAULT_PROVIDER: str = "openai"
     AI_DEFAULT_MODEL: str = "gpt-4"
+    
+    # Provider API Keys (for open source mode)
+    OPENAI_API_KEY: str = ""
+    ANTHROPIC_API_KEY: str = ""
+    GOOGLE_API_KEY: str = ""
     
     # Portkey specific settings
     PORTKEY_APP_ID: str = ""  # Optional: Portkey app ID for analytics
@@ -53,6 +61,11 @@ class Settings(BaseSettings):
     
     # Security
     SECRET_KEY: str = "your-secret-key-change-in-production"
+    
+    # Authentication (Clerk)
+    CLERK_SECRET_KEY: str = ""
+    CLERK_PUBLISHABLE_KEY: str = ""
+    ENABLE_AUTH: bool = False  # Toggle authentication on/off
     
     class Config:
         env_file = ".env"
