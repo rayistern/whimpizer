@@ -1058,9 +1058,9 @@ def read_file_content(file_path: str) -> Optional[str]:
             content = content.replace('---', '')          # Remove triple dashes
             content = content.replace('_', '')            # Remove underscores
             
-            # Fix double line breaks (replace with single)
+            # Fix multiple consecutive line breaks (replace with single)
             import re
-            content = re.sub(r'\n\n+', '\n', content)     # Multiple newlines to single newline
+            content = re.sub(r'\n{2,}', '\n', content)    # 2+ consecutive newlines to single newline
             
             return content
     except Exception as e:
