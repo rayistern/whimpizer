@@ -798,7 +798,10 @@ class WimpyPDFGenerator:
         months_seen: Set[str] = set()
         month_names = [
             'january','february','march','april','may','june',
-            'july','august','september','october','november','december'
+            'july','august','september','october','november','december',
+            # Hebrew months
+            'tishrei','cheshvan','kislev','tevet','shevat','adar',
+            'nissan','iyar','sivan','tammuz','av','elul'
         ]
 
         i = 0
