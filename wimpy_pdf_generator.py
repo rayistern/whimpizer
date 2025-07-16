@@ -24,10 +24,10 @@ FONT_SIZES = {
 }
 
 LINE_SPACING = {
-    'paragraph': 1.325,
-    'h2': 0.7,
-    'list_item': 1.325,
-    'dialogue': 1.325,
+    'paragraph': 1.52,
+    'h2': 1.1,
+    'list_item': 1.52,
+    'dialogue': 1.52,
 }
 
 JITTER = {
@@ -38,12 +38,20 @@ JITTER = {
 }
 
 PAGE_MARGINS = {
-    'notebook': (50, 33, 15, 50),
+    'notebook': (50, 50, 15, 50),
     #left, top, right, bottom
     'plain':    (72, 60, 15, 60),
 }
 
 TEXT_AREA_PADDING = 5
+
+# --- Ruled line layout control ---
+# One ruled line height in points (for US letter notebook backgrounds it is ~24pt).
+RULE_LINE_HEIGHT = 21.163
+# How many ruled lines an explicit blank line should consume
+EMPTY_LINE_MULTIPLIER = 1.40  # 1 = skip one ruled line
+# Extra blank space after paragraphs expressed in ruled lines
+PARAGRAPH_EXTRA_MULTIPLIER = 0.0  # 0 = none (align next paragraph directly beneath)
 
 try:
     from reportlab.lib.pagesizes import letter, A4
@@ -605,11 +613,12 @@ class WimpyPDFGenerator:
                      self.page_style.margins[2] - self.page_style.text_area_padding)
         
         current_y = self.page_style.height - self.page_style.margins[1] - 15
-        line_height_base = 24  # Match the ruled line spacing
+        line_height_base = RULE_LINE_HEIGHT  # Match the ruled line spacing
         
         for element_type, content, original in parsed_content:
             if element_type == 'empty':
-                current_y -= line_height_base * 0.5
+                # Move down by a fixed number of ruled lines for blank lines
+                current_y -= line_height_base * EMPTY_LINE_MULTIPLIER
                 continue
 
             # Skip h1 and h3 entirely (Wimpy Kid books have no visible headers)
@@ -737,8 +746,8 @@ class WimpyPDFGenerator:
                     renderer.draw_text_with_effects(line, text_x, current_y, style)
                     current_y -= line_height
                 
-                # Extra space after paragraphs
-                current_y -= line_height * 0.4
+                # Extra space after paragraphs (optional multiple of ruled lines)
+                current_y -= line_height_base * PARAGRAPH_EXTRA_MULTIPLIER
     
     def _wrap_text(self, text: str, font_name: str, font_size: int, max_width: float) -> List[str]:
         """Word-wrap using actual font metrics so all lines stay inside margins"""
