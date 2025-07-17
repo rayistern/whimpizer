@@ -232,6 +232,10 @@ Examples:
                         help='Skip audiobook generation step')
     parser.add_argument('--audio-only', action='store_true',
                         help='Only generate audiobooks (skip PDF generation)')
+    parser.add_argument('--cloud-gpu', action='store_true',
+                        help='Force cloud GPU usage for audio generation')
+    parser.add_argument('--local-audio', action='store_true',
+                        help='Force local audio generation (disable cloud GPU)')
     
     # Download Options
     parser.add_argument('--downloader', choices=['basic', 'selenium'], default='selenium',

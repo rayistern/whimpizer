@@ -5,7 +5,41 @@ audio:
   # Enable/disable audio generation
   enabled: true
   
-  # Model configuration
+  # Cloud GPU configuration
+  cloud_gpu:
+    enabled: true
+    provider: "runpod"  # runpod, thunder, modal, replicate
+    
+    # Provider configurations (use environment variables for API keys)
+    runpod:
+      api_key: "${RUNPOD_API_KEY}"
+      endpoint_url: "${RUNPOD_ENDPOINT_URL}"
+      region: "us-east-1"
+      timeout: 300
+      
+    thunder:
+      api_key: "${THUNDER_API_KEY}" 
+      endpoint_url: "${THUNDER_ENDPOINT_URL}"
+      timeout: 300
+      
+    modal:
+      api_key: "${MODAL_API_KEY}"
+      function_url: "${MODAL_FUNCTION_URL}"
+      timeout: 300
+      
+    # Fallback settings
+    fallback_to_local: true
+    max_retries: 3
+    
+    # Performance settings
+    batch_processing:
+      enabled: true
+      max_batch_size: 5
+      timeout_per_batch: 60
+      
+    parallel_workers: 3
+  
+  # Model configuration (for local fallback)
   model:
     name: "sesame/csm-1b"
     device: "cpu"  # Will auto-detect GPU if available
