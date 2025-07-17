@@ -8,6 +8,7 @@ pydantic-settings==2.6.0
 python-multipart==0.0.20
 httpx==0.28.0
 
+
 # Redis for job queue
 redis==5.0.1
 
