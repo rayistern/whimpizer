@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Complete Whimperizer Pipeline
-Orchestrates the full process: Download → AI Transform → PDF Generation
+Orchestrates the full process: Download → AI Transform → PDF Generation → Audio Generation
 """
 
 import os
@@ -9,8 +9,9 @@ import sys
 import argparse
 import subprocess
 import time
+import yaml
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 def run_command(cmd: List[str], description: str, verbose: bool = False) -> bool:
     """Run a command and handle errors"""
@@ -48,12 +49,128 @@ def check_dependencies():
     
     if missing:
         print(f"❌ Missing required files: {', '.join(missing)}")
+
+def check_audio_dependencies() -> bool:
+    """Check if audio generation dependencies are available"""
+    try:
+        import torch
+        import torchaudio
+        from audio.audiobook_generator import AudiobookGenerator
+        return True
+    except ImportError as e:
+        return False
+
+def load_audio_config() -> Dict[str, Any]:
+    """Load audio generation configuration"""
+    try:
+        config_path = Path('../config/audio_config.yaml')
+        if config_path.exists():
+            with open(config_path, 'r') as f:
+                return yaml.safe_load(f)
+        else:
+            # Return default config
+            return {
+                'audio': {
+                    'enabled': False,  # Disabled by default
+                    'model': {'name': 'sesame/csm-1b', 'device': 'cpu'},
+                    'output': {'formats': ['wav', 'mp3']},
+                    'voices': {'narrator': 0, 'greg': 1, 'rodrick': 2, 'mom': 3, 'dad': 4}
+                }
+            }
+    except Exception as e:
+        print(f"Warning: Failed to load audio config: {e}")
+        return {'audio': {'enabled': False}}
+
+def generate_audiobooks(whimper_files: List[Path], audio_dir: str, verbose: bool = False) -> bool:
+    """Generate audiobooks from whimperized content"""
+    try:
+        # Check if audio generation is available
+        if not check_audio_dependencies():
+            print("⚠️  Audio dependencies not available. Skipping audiobook generation.")
+            print("   To enable audio generation, install: pip install -r config/csm_requirements.txt")
+            return True  # Not a failure, just not available
+        
+        # Load configuration
+        config = load_audio_config()
+        
+        if not config.get('audio', {}).get('enabled', False):
+            print("⚠️  Audio generation is disabled in configuration")
+            return True
+        
+        print(f"🎵 Generating audiobooks for {len(whimper_files)} files...")
+        
+        # Import audio generator
+        from audio.audiobook_generator import AudiobookGenerator
+        
+        # Initialize generator
+        generator = AudiobookGenerator(config)
+        
+        # Validate configuration
+        validation = generator.validate_configuration()
+        if not validation['valid']:
+            print(f"❌ Audio configuration validation failed: {validation['errors']}")
+            return False
+        
+        success_count = 0
+        
+        for whimper_file in whimper_files:
+            try:
+                # Read the whimperized content
+                with open(whimper_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                if not content.strip():
+                    print(f"⚠️  Empty content in {whimper_file.name}, skipping")
+                    continue
+                
+                # Create title from filename
+                title = whimper_file.stem.replace('-whimperized', '').replace('_', ' ')
+                
+                if verbose:
+                    print(f"📖 Processing: {title}")
+                    
+                    # Show time estimate
+                    estimate = generator.estimate_generation_time(content)
+                    print(f"   Estimated audio duration: {estimate['estimated_audio_duration_minutes']:.1f} minutes")
+                    print(f"   Estimated generation time: {estimate['estimated_generation_time_minutes']:.1f} minutes")
+                
+                # Generate audiobook
+                output_paths = generator.generate_audiobook(
+                    content=content,
+                    title=title
+                )
+                
+                if output_paths:
+                    print(f"✅ Generated audiobook: {title}")
+                    if verbose:
+                        for format_name, path in output_paths.items():
+                            print(f"   {format_name.upper()}: {path}")
+                    success_count += 1
+                else:
+                    print(f"❌ Failed to generate audiobook: {title}")
+                
+            except Exception as e:
+                print(f"❌ Error generating audiobook for {whimper_file.name}: {str(e)}")
+                if verbose:
+                    import traceback
+                    traceback.print_exc()
+                continue
+        
+        print(f"🎵 Audiobook generation completed: {success_count}/{len(whimper_files)} successful")
+        return success_count > 0
+        
+    except Exception as e:
+        print(f"❌ Audiobook generation failed: {str(e)}")
+        if verbose:
+            import traceback
+            traceback.print_exc()
+        return False
         return False
     return True
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Complete Whimperizer Pipeline: Download → AI Transform → PDF Generation",
+        description="Complete Whimperizer Pipeline: Download → AI Transform → PDF Generation → Audio Generation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -78,7 +195,12 @@ Examples:
   python pipeline.py --urls urls.csv --groups zaltz-1a zaltz-1b --provider openai
    
   # Custom directories
-  python pipeline.py --urls urls.csv --groups zaltz-1a --download-dir content --whimper-dir stories --pdf-dir books
+  python pipeline.py --urls urls.csv --groups zaltz-1a --download-dir content --whimper-dir stories --pdf-dir books --audio-dir audiobooks
+  
+  # Audio generation examples (requires CSM dependencies)
+  python pipeline.py --urls urls.csv --groups zaltz-1a --provider anthropic  # Full pipeline with audio
+  python pipeline.py --skip-download --skip-whimperize --groups zaltz-1a --audio-only  # Audio only
+  python pipeline.py --urls urls.csv --groups zaltz-1a --skip-audio  # Skip audio generation
   
   # Available AI models (edit config.yaml first):
   # OpenAI: gpt-4o, gpt-4-turbo, o1-preview, o1-mini
@@ -96,6 +218,8 @@ Examples:
                         help='Whimperized content directory (default: whimperized_content)')
     parser.add_argument('--pdf-dir', type=str, default='pdfs',
                         help='PDF output directory (default: pdfs)')
+    parser.add_argument('--audio-dir', type=str, default='audiobooks',
+                        help='Audiobook output directory (default: audiobooks)')
     
     # Pipeline Control
     parser.add_argument('--skip-download', action='store_true',
@@ -104,6 +228,10 @@ Examples:
                         help='Skip whimperize step (use existing whimperized content)')
     parser.add_argument('--skip-pdf', action='store_true',
                         help='Skip PDF generation step')
+    parser.add_argument('--skip-audio', action='store_true',
+                        help='Skip audiobook generation step')
+    parser.add_argument('--audio-only', action='store_true',
+                        help='Only generate audiobooks (skip PDF generation)')
     
     # Download Options
     parser.add_argument('--downloader', choices=['basic', 'selenium'], default='selenium',
@@ -161,6 +289,7 @@ Examples:
     Path(args.download_dir).mkdir(exist_ok=True)
     Path(args.whimper_dir).mkdir(exist_ok=True)
     Path(args.pdf_dir).mkdir(exist_ok=True)
+    Path(args.audio_dir).mkdir(exist_ok=True)
     
     success = True
     
@@ -225,7 +354,7 @@ Examples:
         print("⏭️  Skipping whimperize (using existing content)")
     
     # Step 3: PDF Generation
-    if not args.skip_pdf and success:
+    if not args.skip_pdf and not args.audio_only and success:
         print("\n📚 Step 3: Generating PDFs...")
         
         # Find whimperized files
@@ -286,6 +415,46 @@ Examples:
     else:
         print("⏭️  Skipping PDF generation")
     
+    # Step 4: Audio Generation
+    if not args.skip_audio and success:
+        print("\n🎵 Step 4: Generating Audiobooks...")
+        
+        # Find whimperized files
+        whimper_files = list(Path(args.whimper_dir).glob('*whimperized*.md'))
+        whimper_files.extend(list(Path(args.whimper_dir).glob('*whimperized*.txt')))
+        
+        if not whimper_files:
+            print(f"❌ No whimperized files found in {args.whimper_dir}")
+            if args.audio_only:
+                sys.exit(1)
+        else:
+            if args.groups:
+                # Filter files for specific groups
+                filtered_files = []
+                for group in args.groups:
+                    group_files = [f for f in whimper_files if group in f.name]
+                    filtered_files.extend(group_files)
+                whimper_files = filtered_files
+            
+            if not whimper_files:
+                print(f"❌ No whimperized files found for groups: {args.groups}")
+                if args.audio_only:
+                    sys.exit(1)
+            else:
+                print(f"Found {len(whimper_files)} whimperized files for audio generation")
+                
+                if args.dry_run:
+                    print("Would generate audiobooks for:")
+                    for whimper_file in whimper_files:
+                        title = whimper_file.stem.replace('-whimperized', '').replace('_', ' ')
+                        print(f"  - {title}")
+                else:
+                    audio_success = generate_audiobooks(whimper_files, args.audio_dir, args.verbose)
+                    if not audio_success:
+                        print("⚠️  Some audiobooks failed to generate, but continuing...")
+    else:
+        print("⏭️  Skipping audiobook generation")
+    
     # Summary
     print(f"\n{'🎉 Pipeline completed!' if success else '❌ Pipeline completed with errors'}")
     
@@ -293,7 +462,10 @@ Examples:
         print(f"\nOutput locations:")
         print(f"  📁 Downloaded content: {args.download_dir}")
         print(f"  📝 Whimperized content: {args.whimper_dir}")
-        print(f"  📚 PDFs: {args.pdf_dir}")
+        if not args.audio_only:
+            print(f"  📚 PDFs: {args.pdf_dir}")
+        if not args.skip_audio:
+            print(f"  🎵 Audiobooks: {args.audio_dir}")
     
     return 0 if success else 1
 
