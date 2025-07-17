@@ -1,0 +1,99 @@
+# Audio Generation Configuration for CSM Voice Integration
+# Configuration for Conversational Speech Model (CSM) audiobook generation
+
+audio:
+  # Enable/disable audio generation
+  enabled: true
+  
+  # Model configuration
+  model:
+    name: "sesame/csm-1b"
+    device: "cpu"  # Will auto-detect GPU if available
+    precision: "float32"
+    cache_dir: "./models/cache"
+    
+  # Output settings
+  output:
+    formats: ["wav", "mp3"]  # Supported output formats
+    sample_rate: 24000       # CSM native sample rate
+    channels: 1              # Mono audio
+    bit_depth: 16           # Audio bit depth
+    
+  # Voice and speaker configuration
+  voices:
+    narrator: 0      # Main narrator voice
+    greg: 1          # Greg Heffley (main character)
+    rodrick: 2       # Rodrick (brother)
+    mom: 3          # Mom character
+    dad: 4          # Dad character
+    friend: 5       # Friend characters
+    teacher: 6      # Teacher/adult characters
+    
+  # Audio processing settings
+  processing:
+    max_chunk_length_ms: 10000    # Maximum audio chunk length
+    silence_padding_ms: 500       # Silence between chunks
+    normalize_volume: true        # Volume normalization
+    compress_audio: true          # Apply audio compression
+    fade_in_ms: 100              # Fade in duration
+    fade_out_ms: 100             # Fade out duration
+    
+  # Generation parameters
+  generation:
+    temperature: 0.8              # Sampling temperature
+    top_k: 50                    # Top-k sampling
+    top_p: 0.9                   # Top-p sampling
+    do_sample: true              # Enable sampling
+    max_new_tokens: 1000         # Max tokens per generation
+    
+  # Quality and performance
+  quality:
+    enable_streaming: true        # Stream generation for long content
+    batch_size: 1                # Processing batch size
+    use_cache: true              # Cache model outputs
+    quantization: false          # Enable model quantization (for speed)
+    
+  # File organization
+  paths:
+    output_dir: "./output/audiobooks"
+    temp_dir: "./output/audiobooks/temp"
+    metadata_dir: "./output/audiobooks/metadata"
+    
+# Text processing for audio generation
+text_processing:
+  # Character detection and voice assignment
+  character_detection:
+    enabled: true
+    patterns:
+      greg: ["I said", "I thought", "I was", "I did", "I went"]
+      rodrick: ["Rodrick said", "Rodrick yelled", "Rodrick"]
+      mom: ["Mom said", "Mom told", "Mom"]
+      dad: ["Dad said", "Dad told", "Dad"]
+      
+  # Chapter and section handling
+  structure:
+    detect_chapters: true
+    chapter_patterns: ["Chapter", "Day", "Part"]
+    add_chapter_breaks: true
+    chapter_pause_ms: 2000
+    
+  # Dialogue processing
+  dialogue:
+    detect_quotes: true
+    quote_patterns: ['"', "'", """, """]
+    speaker_assignment: "auto"  # auto, manual, or pattern-based
+    dialogue_pause_ms: 300
+    
+# Logging and monitoring
+logging:
+  level: "INFO"
+  file: "./logs/audio_generation.log"
+  max_size_mb: 100
+  backup_count: 5
+  
+  # Metrics to track
+  metrics:
+    generation_time: true
+    audio_length: true
+    memory_usage: true
+    error_rates: true

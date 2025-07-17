@@ -1,0 +1,37 @@
+# CSM (Conversational Speech Model) Dependencies
+# Voice generation and audio processing requirements
+
+# Core PyTorch ecosystem for CSM
+torch>=2.4.0
+torchaudio>=2.4.0
+torchvision>=0.19.0
+
+# Transformers and model management
+transformers>=4.49.0
+tokenizers>=0.21.0
+huggingface_hub>=0.28.1
+
+# Audio processing and codecs
+moshi>=0.2.2
+audiofile>=1.5.0
+resampy>=0.4.3
+librosa>=0.10.1
+
+# CSM specific dependencies
+torchtune>=0.4.0
+torchao>=0.9.0
+
+# Audio format handling
+pydub>=0.25.1
+soundfile>=0.12.1
+
+# Utilities and performance
+numpy>=1.24.0
+scipy>=1.11.0
+tqdm>=4.65.0
+
+# Optional: Memory optimization
+psutil>=5.9.0
+
+# Development and debugging
+matplotlib>=3.7.0
