@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Home, List, Info, User, LogOut } from 'lucide-react';
+import { BookOpen, Home, List, Info, User } from 'lucide-react';
 import { useAuth, useUser, SignInButton, UserButton } from '@clerk/clerk-react';
 
 interface LayoutProps {
