@@ -1,7 +1,7 @@
 """
 Jobs API endpoints for Whimpizer Web
 """
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Query
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Query, Depends
 from fastapi.responses import FileResponse
 from typing import Optional
 import uuid

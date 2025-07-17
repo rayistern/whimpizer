@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: whimpizer-web-backend
+    env: python
+    rootDir: whimpizer-web/backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.4
+      - key: ENABLE_AUTH
+        value: false
+      - key: CLERK_SECRET_KEY
+        value: ""
+      - key: CLERK_PUBLISHABLE_KEY  
+        value: ""
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
