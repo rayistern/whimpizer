@@ -118,7 +118,7 @@ class OpenAIProvider(AIProvider):
             
             # Only add temperature for non-reasoning models
             model_name = self.config['model'].lower()
-            is_reasoning_model = any(x in model_name for x in ['o1-preview', 'o1-mini', 'o1', 'o4-mini'])
+            is_reasoning_model = any(x in model_name for x in ['o1-preview', 'o1-mini', 'o1', 'o4-mini', 'o3'])
             
             if not is_reasoning_model:
                 api_params['temperature'] = self.config['temperature']
@@ -550,7 +550,8 @@ class Whimperizer:
             if isinstance(self.conversation_history, list):
                 # JSON format - use conversation history + new content
                 messages = self.conversation_history.copy()
-                new_message = f"""Ok fine. So here's a full chapter from the book; let's try with this, please generate a full Whimpy Kid rendition off of this text now! Here are those files of chapter 1 of the original Hillel diary (the version for grown ups). Output just the Whimpy version now, in markdown! And don't shorten it vs what I'm giving you here.
+                new_message = f"""Ok fine. So here's a full chapter from the book; let's try with this, please generate a full Whimpy Kid rendition off of this text now! Here are those files of chapter 1 of the original Hillel diary (the version for grown ups). Output just the Whimpy version now, in markdown! And don't use any charts in the output, remember its being printed (just regular markdown please).
+
 
 {content}"""
                 messages.append({
