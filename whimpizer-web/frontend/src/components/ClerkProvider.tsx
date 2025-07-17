@@ -1,5 +1,5 @@
 import { ClerkProvider as ClerkReactProvider } from '@clerk/clerk-react';
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
 interface ClerkProviderProps {
   children: ReactNode;

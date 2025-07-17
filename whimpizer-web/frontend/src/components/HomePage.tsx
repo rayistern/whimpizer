@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { Plus, Trash2, Globe, Wand2, Settings, AlertCircle } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { whimpizerAPI, type JobSubmissionRequest } from '../services/api';
-import { useAuth } from '../hooks/useAuth';
+// import { useAuth } from '../hooks/useAuth'; // Removed - not used in this component
 
 interface HomePageProps {
   onJobSubmitted?: (jobId: string) => void;
 }
 
 const HomePage: React.FC<HomePageProps> = ({ onJobSubmitted }) => {
-  const { isSignedIn } = useAuth();
+  // const { isSignedIn } = useAuth(); // Commented out - auth not used in this component
   const [urls, setUrls] = useState<string[]>(['']);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [config, setConfig] = useState({
