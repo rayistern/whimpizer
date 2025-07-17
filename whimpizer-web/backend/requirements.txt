@@ -6,7 +6,7 @@ pydantic-settings==2.6.0
 
 # HTTP and CORS
 python-multipart==0.0.20
-httpx==0.28.0
+httpx>=0.28.1
 
 
 # Redis for job queue
