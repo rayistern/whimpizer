@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # Redis for job queue and session storage
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - AI_BASE_URL=${AI_BASE_URL:-https://api.portkey.ai/v1}
+      - AI_API_KEY=${AI_API_KEY}
+      - DEBUG=${DEBUG:-true}
+    volumes:
+      # Mount original whimpizer code for development
+      - ../src:/app/whimpizer_src:ro
+      - ../resources:/app/whimpizer_resources:ro  
+      - ../config:/app/whimpizer_config:ro
+      # Persistent storage for uploads and outputs
+      - backend_uploads:/app/uploads
+      - backend_outputs:/app/outputs
+      - backend_logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Frontend (React app) - to be implemented
+  frontend:
+    # Will be added in Phase 3
+    image: nginx:alpine
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+    # This is a placeholder - will be replaced with actual React app
+
+volumes:
+  redis_data:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_outputs:
+    driver: local
+  backend_logs:
+    driver: local
+
+networks:
+  default:
+    name: whimpizer-network
