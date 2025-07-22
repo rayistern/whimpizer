@@ -7,7 +7,7 @@
   # Node version for build
   NODE_VERSION = "18"
   # Clerk publishable key
-  VITE_CLERK_PUBLISHABLE_KEY = "pk_test_your_clerk_publishable_key_here"
+  VITE_CLERK_PUBLISHABLE_KEY = "pk_test_am9pbnQtbW9yYXktNzMuY2xlcmsuYWNjb3VudHMuZGV2JA"
 
 # Redirect all routes to index.html for SPA routing
 [[redirects]]
