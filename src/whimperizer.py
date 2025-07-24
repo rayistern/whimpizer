@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """
 Whimperizer - Convert downloaded content to Wimpy Kid style children's stories
+
+Features:
+- Multi-provider AI support (OpenAI, Anthropic, Google)
+- Fallback system: If primary model fails, automatically tries backup models
+- Graceful failure handling: Groups fail completely if all fallbacks are exhausted
+- Comprehensive logging and error reporting
 """
 
 import os
@@ -409,6 +415,17 @@ class Whimperizer:
         self.ai_provider = self.setup_ai_provider()
         self.conversation_history = self.load_prompt()
         
+        # Log fallback configuration
+        fallbacks = self.config.get('api', {}).get('fallbacks', {})
+        if fallbacks:
+            logger.info("Fallback system configured:")
+            for key, fb_config in fallbacks.items():
+                logger.info(f"  {key}: {fb_config['provider']} ({fb_config.get('model', 'default')})")
+            print(f"🛡️  Fallback system active: {len(fallbacks)} backup models configured")
+        else:
+            logger.warning("No fallback models configured - single point of failure")
+            print(f"⚠️  No fallback models configured - consider adding fallbacks to config")
+        
         # Create output directory
         os.makedirs(self.config['processing']['output_dir'], exist_ok=True)
     
@@ -442,6 +459,25 @@ class Whimperizer:
             return GoogleProvider(provider_config)
         else:
             raise ValueError(f"Unsupported provider: {self.provider_name}")
+    
+    def create_fallback_provider(self, fallback_config):
+        """Create a fallback AI provider from fallback configuration"""
+        provider_name = fallback_config['provider']
+        
+        # Get base provider config and override with fallback settings
+        base_config = self.config['api']['providers'].get(provider_name, {}).copy()
+        base_config.update(fallback_config)
+        
+        logger.info(f"Creating fallback provider: {provider_name} with model {fallback_config.get('model', 'default')}")
+        
+        if provider_name == 'openai':
+            return OpenAIProvider(base_config)
+        elif provider_name == 'anthropic':
+            return AnthropicProvider(base_config)
+        elif provider_name == 'google':
+            return GoogleProvider(base_config)
+        else:
+            raise ValueError(f"Unsupported fallback provider: {provider_name}")
     
     def load_prompt(self):
         """Load the conversation history from prompt file"""
@@ -541,58 +577,88 @@ class Whimperizer:
         
         return "\n".join(combined_content)
     
+    def call_ai_api_with_fallbacks(self, messages):
+        """Core fallback logic - try primary provider then fallbacks"""
+        # Calculate total input length for logging
+        total_chars = sum(len(msg['content']) for msg in messages)
+        logger.info(f"Total input length: {total_chars:,} characters")
+        
+        # Try primary provider first
+        provider_attempts = [
+            ("primary", self.provider_name, self.ai_provider)
+        ]
+        
+        # Add fallback providers if configured
+        fallbacks = self.config.get('api', {}).get('fallbacks', {})
+        for fallback_key in ['fallback_1', 'fallback_2']:
+            if fallback_key in fallbacks:
+                try:
+                    fallback_config = fallbacks[fallback_key]
+                    fallback_provider = self.create_fallback_provider(fallback_config)
+                    provider_name = f"{fallback_config['provider']} ({fallback_config.get('model', 'default')})"
+                    provider_attempts.append((fallback_key, provider_name, fallback_provider))
+                except Exception as e:
+                    logger.error(f"Failed to create {fallback_key} provider: {e}")
+        
+        logger.info(f"Will attempt {len(provider_attempts)} provider(s) in sequence")
+        
+        # Try each provider in sequence
+        for attempt_num, (attempt_type, provider_name, provider) in enumerate(provider_attempts, 1):
+            try:
+                logger.info(f"Attempt {attempt_num}/{len(provider_attempts)}: {attempt_type} provider ({provider_name})")
+                print(f"🤖 Attempt {attempt_num}/{len(provider_attempts)}: Trying {provider_name}...")
+                
+                result = provider.generate(messages)
+                
+                if result:
+                    logger.info(f"SUCCESS: {attempt_type} provider ({provider_name}) returned {len(result):,} characters")
+                    print(f"✅ Success with {provider_name}")
+                    return result
+                else:
+                    logger.warning(f"FAILURE: {attempt_type} provider ({provider_name}) returned no content")
+                    print(f"❌ No response from {provider_name}")
+                    
+            except Exception as e:
+                logger.error(f"FAILURE: {attempt_type} provider ({provider_name}) failed: {e}")
+                print(f"❌ {provider_name} failed: {str(e)[:100]}...")
+        
+        # All providers failed
+        logger.error(f"All {len(provider_attempts)} provider attempts failed")
+        print(f"💥 All {len(provider_attempts)} providers failed - no fallbacks remaining")
+        return None
+    
     def call_ai_api(self, content):
-        """Call AI API to whimperize the content"""
-        try:
-            logger.info(f"Preparing API call for {self.provider_name}")
-            
-            # Build messages array
-            if isinstance(self.conversation_history, list):
-                # JSON format - use conversation history + new content
-                messages = self.conversation_history.copy()
-                new_message = f"""Ok fine. So here's a full chapter from the book; let's try with this, please generate a full Whimpy Kid rendition off of this text now! Here are those files of chapter 1 of the original Hillel diary (the version for grown ups). Output just the Whimpy version now, in markdown! And don't shorten it vs what I'm giving you here.
+        """Call AI API to whimperize the content with fallback support"""
+        # Build messages array once
+        if isinstance(self.conversation_history, list):
+            # JSON format - use conversation history + new content
+            messages = self.conversation_history.copy()
+            new_message = f"""Ok fine. So here's a full chapter from the book; let's try with this, please generate a full Whimpy Kid rendition off of this text now! Here are those files of chapter 1 of the original Hillel diary (the version for grown ups). Output just the Whimpy version now, in markdown! And don't shorten it vs what I'm giving you here.
 
 {content}"""
-                messages.append({
-                    "role": "user",
-                    "content": new_message
-                })
-                logger.debug(f"Using conversation history with {len(self.conversation_history)} messages")
-                
-                # DEBUG: Show what we're actually sending
-                print(f"\n🔍 DEBUG: Final message being sent to AI:")
-                print(f"   Last message length: {len(new_message):,} characters")
-                print(f"   First 1000 chars of combined content:")
-                print(content[:1000])
-                print(f"   Last 500 chars of combined content:")
-                print(content[-500:])
-            else:
-                # Legacy plain text format
-                full_content = f"{self.conversation_history}\n\n{content}"
-                messages = [{
-                    "role": "user", 
-                    "content": full_content
-                }]
-                logger.debug("Using legacy plain text format")
+            messages.append({
+                "role": "user",
+                "content": new_message
+            })
+            logger.debug(f"Using conversation history with {len(self.conversation_history)} messages")
             
-            logger.info(f"Sending {len(messages)} messages to {self.provider_name}")
-            
-            # Calculate total input length for logging
-            total_chars = sum(len(msg['content']) for msg in messages)
-            logger.info(f"Total input length: {total_chars:,} characters")
-            
-            result = self.ai_provider.generate(messages)
-            
-            if result:
-                logger.info(f"Received response from {self.provider_name}: {len(result):,} characters")
-            else:
-                logger.warning(f"No response received from {self.provider_name}")
-            
-            return result
-            
-        except Exception as e:
-            logger.error(f"Error calling {self.provider_name} API: {e}")
-            return None
+            # DEBUG: Show what we're actually sending
+            print(f"\n🔍 DEBUG: Final message being sent to AI:")
+            print(f"   Last message length: {len(new_message):,} characters")
+            print(f"   First 1000 chars of combined content:")
+            print(content[:1000])
+            print(f"   Last 500 chars of combined content:")
+            print(content[-500:])
+        else:
+            # Legacy plain text format
+            full_content = f"{self.conversation_history}\n\n{content}"
+            messages = [{
+                "role": "user", 
+                "content": full_content
+            }]
+            logger.debug("Using legacy plain text format")
+        
+        return self.call_ai_api_with_fallbacks(messages)
     
     def call_iterative_api(self, group_files, short_response):
         """Call AI API iteratively for each file when response is too short"""
@@ -641,8 +707,8 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
                         "content": file_message
                     })
                     
-                    # Get response for this file
-                    result = self.ai_provider.generate(messages)
+                    # Get response for this file using fallback system
+                    result = self.call_ai_api_with_fallbacks(messages)
                     
                     if result:
                         logger.info(f"File {i} response: {len(result):,} characters")
@@ -655,8 +721,10 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
                             "content": result
                         })
                     else:
-                        logger.warning(f"No response for file {file_info['filename']}")
-                        print(f"   ❌ Failed to get response for this incident")
+                        logger.error(f"Failed to process file {file_info['filename']} - all fallbacks exhausted")
+                        print(f"   💥 Failed to process {file_info['filename']} - all API providers and fallbacks exhausted")
+                        print(f"   🚫 Stopping iterative processing - group cannot be completed")
+                        return None  # Return None to indicate complete failure
                 
                 if all_parts:
                     # Combine all parts into one coherent story
@@ -712,9 +780,10 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
         whimperized_content = self.call_ai_api(combined_content)
         
         if not whimperized_content:
-            error_msg = f"Failed to whimperize group {group_key}"
+            error_msg = f"Failed to whimperize group {group_key} - all fallback models exhausted"
             logger.error(error_msg)
-            # Error details already shown by AI provider
+            print(f"💥 Group {group_key} failed: All API providers and fallbacks exhausted")
+            print(f"   This group will not be processed further.")
             return False
         
         # Save the initial response
@@ -806,26 +875,35 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
         
         # Process each group
         successful = 0
+        failed = 0
         group_results = []
         total = len(grouped_files)
         
-        print(f"\n📁 Processing {total} group(s) with {self.provider_name}:")
+        print(f"\n📁 Processing {total} group(s) with {self.provider_name} (+ fallbacks):")
         
         for group_key, group_files in grouped_files.items():
+            logger.info(f"=== Starting group {group_key} ({len(group_files)} files) ===")
             result = self.process_group(group_key, group_files)
             if result:
                 successful += 1
                 group_results.append(result)
+                logger.info(f"=== Group {group_key} completed successfully ===")
+            else:
+                failed += 1
+                logger.error(f"=== Group {group_key} failed completely ===")
         
         # Final summary
-        logger.info(f"Processing complete: {successful}/{total} groups successful")
+        logger.info(f"Processing complete: {successful}/{total} groups successful, {failed} failed")
         print(f"\n🎯 Processing complete: {successful}/{total} groups successful")
         
-        if successful < total:
-            print(f"⚠️  {total - successful} group(s) failed - see error details above")
-        elif successful > 0:
+        if failed > 0:
+            print(f"💥 {failed} group(s) failed after all fallback attempts")
+            print(f"   This typically indicates API rate limits, authentication issues, or content policy violations")
+            print(f"   Check the logs above for specific error details from each provider")
+        
+        if successful > 0:
             output_dir = Path(self.config['processing']['output_dir']).resolve()
-            print(f"✨ All groups processed successfully!")
+            print(f"✨ {successful} group(s) processed successfully!")
             print(f"\n📁 Output directory: {output_dir}")
             print(f"📝 Generated files:")
             for result in group_results:
@@ -833,6 +911,8 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
                 if result['iterative_file']:
                     print(f"   • {Path(result['iterative_file']).name} (iterative)")
                 print(f"   🎯 Final choice: {Path(result['final_file']).name} ({result['final_mode']})")
+        elif total > 0:
+            print(f"❌ No groups were successfully processed")
         
         return group_results
 

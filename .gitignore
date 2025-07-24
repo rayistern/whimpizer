@@ -92,3 +92,13 @@ tests/*.pdf
 # Browser automation
 selenium-debug.log
 chromedriver.log
+
+#old stuff
+output/old/
+src/downloaded_content/
+src/whimperized_content/
+src/pdfs/
+downloaded_content/
+data/
+
+
