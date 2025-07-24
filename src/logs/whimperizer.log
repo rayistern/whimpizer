@@ -330,3 +330,19 @@ For more information check: https://httpstatuses.com/400
 2025-07-24 16:36:38,666 - __main__ - INFO - get_input_files:535 - Found 52 input files
 2025-07-24 16:36:38,667 - __main__ - INFO - group_files:551 - Grouped files into 6 combinations
 2025-07-24 16:36:38,667 - __main__ - INFO - group_files:551 - Grouped files into 6 combinations
+2025-07-24 16:42:41,702 - __main__ - INFO - load_config:437 - Loaded configuration from ../config/config.yaml
+2025-07-24 16:42:41,702 - __main__ - INFO - load_config:437 - Loaded configuration from ../config/config.yaml
+2025-07-24 16:42:41,703 - __main__ - INFO - setup_ai_provider:452 - Setting up AI provider: openai
+2025-07-24 16:42:41,703 - __main__ - INFO - setup_ai_provider:452 - Setting up AI provider: openai
+2025-07-24 16:42:42,121 - __main__ - INFO - load_prompt:492 - Loaded conversation history as JSON
+2025-07-24 16:42:42,121 - __main__ - INFO - load_prompt:492 - Loaded conversation history as JSON
+2025-07-24 16:42:42,122 - __main__ - INFO - __init__:421 - Fallback system configured:
+2025-07-24 16:42:42,122 - __main__ - INFO - __init__:421 - Fallback system configured:
+2025-07-24 16:42:42,122 - __main__ - INFO - __init__:423 -   fallback_1: anthropic (claude-3-sonnet-20240229)
+2025-07-24 16:42:42,122 - __main__ - INFO - __init__:423 -   fallback_1: anthropic (claude-3-sonnet-20240229)
+2025-07-24 16:42:42,123 - __main__ - INFO - __init__:423 -   fallback_2: openai (gpt-4o-mini)
+2025-07-24 16:42:42,123 - __main__ - INFO - __init__:423 -   fallback_2: openai (gpt-4o-mini)
+2025-07-24 16:42:42,126 - __main__ - INFO - get_input_files:535 - Found 52 input files
+2025-07-24 16:42:42,126 - __main__ - INFO - get_input_files:535 - Found 52 input files
+2025-07-24 16:42:42,127 - __main__ - INFO - group_files:551 - Grouped files into 6 combinations
+2025-07-24 16:42:42,127 - __main__ - INFO - group_files:551 - Grouped files into 6 combinations

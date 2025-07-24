@@ -99,6 +99,8 @@ src/downloaded_content/
 src/whimperized_content/
 src/pdfs/
 downloaded_content/
-data/
+data/*
 
-
+#logs
+src/logs/*
+!src/logs/.gitkeep

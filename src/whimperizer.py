@@ -743,13 +743,28 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
             logger.error(f"Error in iterative API processing: {e}")
             return None
     
-    def save_output(self, group_key, content, mode="normal"):
+    def save_output(self, group_key, content, mode="normal", line_numbers=None):
         """Save the whimperized content to output file"""
         from datetime import datetime
         
         output_dir = Path(self.config['processing']['output_dir'])
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = output_dir / f"{group_key}-whimperized-{mode}-{timestamp}.md"
+        
+        # Include line numbers in filename if provided
+        if line_numbers:
+            if len(line_numbers) == 1:
+                line_suffix = f"-{line_numbers[0]}"
+            else:
+                # Multiple line numbers: show range or list
+                sorted_lines = sorted(line_numbers, key=lambda x: float(x))
+                if len(sorted_lines) <= 3:
+                    line_suffix = f"-{'-'.join(sorted_lines)}"
+                else:
+                    line_suffix = f"-{sorted_lines[0]}to{sorted_lines[-1]}"
+        else:
+            line_suffix = ""
+        
+        output_file = output_dir / f"{group_key}{line_suffix}-whimperized-{mode}-{timestamp}.md"
         
         try:
             with open(output_file, 'w', encoding='utf-8') as f:
@@ -786,8 +801,11 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
             print(f"   This group will not be processed further.")
             return False
         
+        # Extract line numbers from group files for filename
+        line_numbers = [file_info['line'] for file_info in group_files]
+        
         # Save the initial response
-        normal_file = self.save_output(group_key, whimperized_content, "normal")
+        normal_file = self.save_output(group_key, whimperized_content, "normal", line_numbers)
         
         # Always use iterative processing for more complete results
         logger.info(f"Starting iterative processing for more comprehensive coverage...")
@@ -801,7 +819,7 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
         
         if followup_response:
             # Save the iterative response
-            iterative_file = self.save_output(group_key, followup_response, "iterative")
+            iterative_file = self.save_output(group_key, followup_response, "iterative", line_numbers)
             
             if len(followup_response) > len(whimperized_content):
                 logger.info(f"Iterative processing provided longer response ({len(followup_response)} vs {len(whimperized_content)} chars)")
