@@ -295,7 +295,7 @@ Examples (run from src/ directory):
         
         # Generate PDFs
         for whimper_file, mode in best_files:
-            # Create output PDF name - extract group key from filename
+            # Create output PDF name - extract group key and timestamp from filename
             # Handle both old and new formats with line numbers
             full_prefix = whimper_file.stem.split('-whimperized-')[0]  # e.g., "zaltz-2a" or "zaltz-2a-16to21"
             prefix_parts = full_prefix.split('-')
@@ -304,7 +304,26 @@ Examples (run from src/ directory):
             else:
                 base_name = full_prefix  # fallback
             
-            pdf_name = f"{base_name}.pdf"
+            # Extract timestamp from whimperized filename
+            # Format: zaltz-2a-16to21-whimperized-iterative-20250724_164521.md
+            filename_parts = whimper_file.stem.split('-whimperized-')
+            if len(filename_parts) >= 2:
+                mode_and_timestamp = filename_parts[1]  # e.g., "iterative-20250724_164521"
+                timestamp_parts = mode_and_timestamp.split('-')
+                if len(timestamp_parts) >= 2:
+                    timestamp = timestamp_parts[-1]  # e.g., "20250724_164521"
+                    pdf_name = f"{base_name}-{timestamp}.pdf"
+                else:
+                    # Fallback: use current timestamp
+                    from datetime import datetime
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    pdf_name = f"{base_name}-{timestamp}.pdf"
+            else:
+                # Fallback: use current timestamp
+                from datetime import datetime
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                pdf_name = f"{base_name}-{timestamp}.pdf"
+            
             pdf_path = Path(args.pdf_dir) / pdf_name
             
             cmd = [
