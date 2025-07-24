@@ -8,7 +8,7 @@ api:
     # First fallback model
     fallback_1:
       provider: "openai"
-      model: "gpt4.1"
+      model: "o4-mini"
       max_tokens: 4000
       temperature: 0.7
     
@@ -22,7 +22,7 @@ api:
   providers:
     openai:
       base_url: "https://api.openai.com/v1"
-      model: "o4-mini"  # Reasoning model - fixed typo from o4-mini
+      model: "gpt-4.1"  # Reasoning model - fixed typo from o4-mini
       # max_tokens: 327680  # Commented out - not needed for most use cases
       temperature: 1
     
