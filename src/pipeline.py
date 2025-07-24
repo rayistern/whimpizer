@@ -56,31 +56,34 @@ def main():
         description="Complete Whimperizer Pipeline: Download → AI Transform → PDF Generation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Examples:
+Examples (run from src/ directory):
   # Basic pipeline (uses selenium by default for better success rate)
-  python pipeline.py --urls urls.csv --groups zaltz-1a
+  python pipeline.py --groups zaltz-1a
   
-  # Specify AI model by editing config.yaml first, then:
-  python pipeline.py --urls urls.csv --provider openai --groups zaltz-1a
+  # Specify AI model by editing ../config/config.yaml first, then:
+  python pipeline.py --provider openai --groups zaltz-1a
   
   # Full pipeline with recommended settings
-  python pipeline.py --urls urls.csv --provider anthropic --groups zaltz-1a --headless --download-delay 3.0 --pdf-style notebook --verbose
+  python pipeline.py --provider anthropic --groups zaltz-1a --headless --download-delay 3.0 --pdf-style notebook --verbose
   
   # If downloads are blocked, try different approaches:
-  python pipeline.py --urls urls.csv --groups zaltz-1a --download-delay 5.0 --headless
-  python pipeline.py --urls urls.csv --groups zaltz-1a --downloader basic --download-format csv
+  python pipeline.py --groups zaltz-1a --download-delay 5.0 --headless
+  python pipeline.py --groups zaltz-1a --downloader basic --download-format csv
+   
+  # Use different input file
+  python pipeline.py --urls ../data/urls.txt --groups zaltz-1a
    
   # Skip steps if you have existing content
   python pipeline.py --skip-download --provider anthropic --groups zaltz-1a
   python pipeline.py --skip-download --skip-whimperize --groups zaltz-1a  # PDFs only
    
   # Process multiple groups
-  python pipeline.py --urls urls.csv --groups zaltz-1a zaltz-1b --provider openai
+  python pipeline.py --groups zaltz-1a zaltz-1b --provider openai
    
   # Custom directories
-  python pipeline.py --urls urls.csv --groups zaltz-1a --download-dir content --whimper-dir stories --pdf-dir books
+  python pipeline.py --groups zaltz-1a --download-dir ../content --whimper-dir ../stories --pdf-dir ../books
   
-  # Available AI models (edit config.yaml first):
+  # Available AI models (edit ../config/config.yaml first):
   # OpenAI: gpt-4o, gpt-4-turbo, o1-preview, o1-mini
   # Anthropic: claude-3-sonnet-20240229, claude-3-opus-20240229  
   # Google: gemini-pro
@@ -88,14 +91,14 @@ Examples:
     )
     
     # Input/Output Options
-    parser.add_argument('--urls', '-u', type=str, default='urls.txt',
-                        help='Input URLs file (default: urls.txt)')
-    parser.add_argument('--download-dir', type=str, default='downloaded_content',
-                        help='Downloaded content directory (default: downloaded_content)')
-    parser.add_argument('--whimper-dir', type=str, default='whimperized_content', 
-                        help='Whimperized content directory (default: whimperized_content)')
-    parser.add_argument('--pdf-dir', type=str, default='pdfs',
-                        help='PDF output directory (default: pdfs)')
+    parser.add_argument('--urls', '-u', type=str, default='../data/urls.csv',
+                        help='Input URLs file (default: ../data/urls.csv)')
+    parser.add_argument('--download-dir', type=str, default='../output/downloaded_content',
+                        help='Downloaded content directory (default: ../output/downloaded_content)')
+    parser.add_argument('--whimper-dir', type=str, default='../output/whimperized_content', 
+                        help='Whimperized content directory (default: ../output/whimperized_content)')
+    parser.add_argument('--pdf-dir', type=str, default='../output/pdfs',
+                        help='PDF output directory (default: ../output/pdfs)')
     
     # Pipeline Control
     parser.add_argument('--skip-download', action='store_true',
@@ -122,8 +125,8 @@ Examples:
                         help='Process specific groups (e.g., zaltz-1a zaltz-1b)')
     parser.add_argument('--list-groups', action='store_true',
                         help='List available groups and exit')
-    parser.add_argument('--config', type=str, default='config.yaml',
-                        help='Configuration file (default: config.yaml)')
+    parser.add_argument('--config', type=str, default='../config/config.yaml',
+                        help='Configuration file (default: ../config/config.yaml)')
     
     # PDF Generation Options
     parser.add_argument('--pdf-style', choices=['notebook', 'blank'], default='notebook',
@@ -132,8 +135,8 @@ Examples:
                         help='PDF font name (auto-detects Wimpy Kid fonts)')
     parser.add_argument('--pdf-background', type=str,
                         help='PDF background template')
-    parser.add_argument('--resources-dir', type=str, default='resources',
-                        help='Resources directory (default: resources)')
+    parser.add_argument('--resources-dir', type=str, default='../resources',
+                        help='Resources directory (default: ../resources)')
     
     # General Options
     parser.add_argument('--verbose', '-v', action='store_true',
@@ -152,7 +155,7 @@ Examples:
     # Handle list-groups
     if args.list_groups:
         cmd = ['python', 'whimperizer.py', '--list-groups']
-        if args.config != 'config.yaml':
+        if args.config != '../config/config.yaml':
             cmd.extend(['--config', args.config])
         subprocess.run(cmd)
         return
@@ -199,7 +202,7 @@ Examples:
         
         cmd = ['python', 'whimperizer.py']
         
-        if args.config != 'config.yaml':
+        if args.config != '../config/config.yaml':
             cmd.extend(['--config', args.config])
         
         if args.provider:

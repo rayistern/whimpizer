@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 class BulkHTMLDownloader:
-    def __init__(self, input_file='urls.txt', output_dir='downloaded_content', delay=1):
+    def __init__(self, input_file='../data/urls.csv', output_dir='../output/downloaded_content', delay=1):
         self.input_file = input_file
         self.output_dir = output_dir
         self.delay = delay  # Delay between requests to be respectful
@@ -180,8 +180,8 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description='Bulk HTML downloader and content extractor')
-    parser.add_argument('--input', '-i', default='urls.txt', help='Input file with URLs (default: urls.txt)')
-    parser.add_argument('--output-dir', '-o', default='downloaded_content', help='Output directory (default: downloaded_content)')
+    parser.add_argument('--input', '-i', default='../data/urls.csv', help='Input file with URLs (default: ../data/urls.csv)')
+    parser.add_argument('--output-dir', '-o', default='../output/downloaded_content', help='Output directory (default: ../output/downloaded_content)')
     parser.add_argument('--format', '-f', choices=['json', 'csv', 'txt'], default='json', help='Output format (default: json)')
     parser.add_argument('--delay', '-d', type=float, default=1.0, help='Delay between requests in seconds (default: 1.0)')
     

@@ -403,7 +403,7 @@ class GoogleProvider(AIProvider):
             return None
 
 class Whimperizer:
-    def __init__(self, config_file='config.yaml', provider_override=None):
+    def __init__(self, config_file='../config/config.yaml', provider_override=None):
         self.config = self.load_config(config_file)
         self.provider_name = provider_override or os.getenv('DEFAULT_AI_PROVIDER') or self.config['api']['default_provider']
         self.ai_provider = self.setup_ai_provider()
@@ -446,7 +446,7 @@ class Whimperizer:
     def load_prompt(self):
         """Load the conversation history from prompt file"""
         try:
-            with open('whimperizer_prompt.txt', 'r', encoding='utf-8') as f:
+            with open('../config/whimperizer_prompt.txt', 'r', encoding='utf-8') as f:
                 content = f.read().strip()
             
             # Try to parse as JSON array first
@@ -463,7 +463,7 @@ class Whimperizer:
             return content
             
         except FileNotFoundError:
-            logger.error("whimperizer_prompt.txt not found")
+            logger.error("../config/whimperizer_prompt.txt not found")
             raise
     
     def parse_filename(self, filename):
@@ -803,7 +803,7 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
 
 def main():
     parser = argparse.ArgumentParser(description='Whimperize downloaded content into children\'s stories')
-    parser.add_argument('--config', default='config.yaml', help='Configuration file path')
+    parser.add_argument('--config', default='../config/config.yaml', help='Configuration file path')
     parser.add_argument('--groups', nargs='+', help='Specific group1-group2 combinations to process (e.g., zaltz-1a)')
     parser.add_argument('--list-groups', action='store_true', help='List available groups and exit')
     parser.add_argument('--provider', choices=['openai', 'anthropic', 'google'], 

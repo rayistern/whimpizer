@@ -97,7 +97,7 @@ class PageStyle:
 class ResourceManager:
     """Manages fonts, images, and other resources"""
     
-    def __init__(self, resources_dir: str = "resources"):
+    def __init__(self, resources_dir: str = "../resources"):
         self.resources_dir = Path(resources_dir)
         self.fonts = {}
         self.images = {}
@@ -446,7 +446,7 @@ class MarkdownParser:
 class WimpyPDFGenerator:
     """Main PDF generator class"""
     
-    def __init__(self, resources_dir: str = "resources"):
+    def __init__(self, resources_dir: str = "../resources"):
         self.resources = ResourceManager(resources_dir)
         self.page_style = None
         self.canvas = None
@@ -1114,7 +1114,7 @@ def main():
     parser.add_argument('-o', '--output', help='Output PDF file')
     parser.add_argument('-s', '--style', choices=['notebook', 'plain', 'journal', 'grid'], 
                        default='notebook', help='PDF style')
-    parser.add_argument('-r', '--resources', default='resources', help='Resources directory')
+    parser.add_argument('-r', '--resources', default='../resources', help='Resources directory')
     parser.add_argument('--list-resources', action='store_true', help='List available resources')
     
     args = parser.parse_args()

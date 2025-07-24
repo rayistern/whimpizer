@@ -8,13 +8,17 @@ Transform web content into children's stories with handwritten Wimpy Kid aesthet
 # Install dependencies
 pip install -r config/requirements.txt
 pip install -r config/whimperizer_requirements.txt
+pip install -r config/selenium_requirements.txt  # For web scraping
 
 # Set up environment
 cp .env.example .env
 # Edit .env with your API keys
 
+# Change to src directory (IMPORTANT!)
+cd src
+
 # Run complete pipeline
-python src/pipeline.py --urls data/urls.csv --verbose
+python pipeline.py --groups zaltz-2a --verbose
 ```
 
 ## 📁 Project Structure
@@ -65,26 +69,32 @@ whimperizer/
 
 ### Complete Pipeline
 ```bash
-# Basic usage
-python src/pipeline.py --urls data/urls.csv --verbose
+# First, change to src directory
+cd src
+
+# Basic usage (uses default ../data/urls.csv)
+python pipeline.py --groups zaltz-2a --verbose
 
 # With specific AI provider
-python src/pipeline.py --urls data/urls.csv --provider anthropic --groups zaltz-1a
+python pipeline.py --provider anthropic --groups zaltz-1a
 
 # Skip download, use existing content
-python src/pipeline.py --skip-download --groups zaltz-1a --verbose
+python pipeline.py --skip-download --groups zaltz-1a --verbose
 ```
 
 ### Step-by-Step
 ```bash
-# 1. Download content
-python src/bulk_downloader.py --input data/urls.csv --output-dir output/downloaded_content
+# Change to src directory first
+cd src
 
-# 2. Transform with AI  
-python src/whimperizer.py --config config/config.yaml --groups zaltz-1a --verbose
+# 1. Download content (defaults to ../data/urls.csv)
+python selenium_downloader.py --groups zaltz-1a
+
+# 2. Transform with AI (defaults to ../config/config.yaml)
+python whimperizer.py --groups zaltz-1a --verbose
 
 # 3. Generate PDF
-python src/wimpy_pdf_generator.py --input output/whimperized_content/zaltz-1a-*.md --output output/zaltz-1a.pdf
+python wimpy_pdf_generator.py --input ../output/whimperized_content/zaltz-1a-*.md --output ../output/zaltz-1a.pdf
 ```
 
 ## ⚙️ Configuration
@@ -124,8 +134,8 @@ Edit `config/config.yaml` to change AI providers, models, and processing options
 # Run tests
 python -m pytest tests/ -v
 
-# Debug mode
-python src/pipeline.py --verbose --dry-run
+# Debug mode (from src/ directory)
+python pipeline.py --verbose --dry-run
 
 # View logs
 tail -f logs/*.log

@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 class BulkHTMLDownloaderSelenium:
-    def __init__(self, input_file='urls.csv', output_dir='downloaded_content', delay=3, headless=False):
+    def __init__(self, input_file='../data/urls.csv', output_dir='../output/downloaded_content', delay=3, headless=False):
         self.input_file = input_file
         self.output_dir = output_dir
         self.delay = delay
@@ -271,8 +271,8 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description='Bulk HTML downloader using Selenium WebDriver')
-    parser.add_argument('--input', '-i', default='urls.csv', help='Input CSV file with URLs (default: urls.csv)')
-    parser.add_argument('--output-dir', '-o', default='downloaded_content', help='Output directory (default: downloaded_content)')
+    parser.add_argument('--input', '-i', default='../data/urls.csv', help='Input CSV file with URLs (default: ../data/urls.csv)')
+    parser.add_argument('--output-dir', '-o', default='../output/downloaded_content', help='Output directory (default: ../output/downloaded_content)')
     parser.add_argument('--delay', '-d', type=float, default=3.0, help='Base delay between requests in seconds (default: 3.0)')
     parser.add_argument('--headless', action='store_true', help='Run browser in headless mode (default: False)')
     
