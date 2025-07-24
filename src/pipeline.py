@@ -304,14 +304,29 @@ Examples (run from src/ directory):
             else:
                 base_name = full_prefix  # fallback
             
-            # Extract timestamp from whimperized filename
-            # Format: zaltz-2a-16to21-whimperized-iterative-20250724_164521.md
+            # Extract timestamp and model name from whimperized filename
+            # New format: zaltz-2a-16to21-whimperized-iterative-gpt-4-1-20250724_164521.md
+            # Old format: zaltz-2a-16to21-whimperized-iterative-20250724_164521.md
             filename_parts = whimper_file.stem.split('-whimperized-')
             if len(filename_parts) >= 2:
-                mode_and_timestamp = filename_parts[1]  # e.g., "iterative-20250724_164521"
-                timestamp_parts = mode_and_timestamp.split('-')
-                if len(timestamp_parts) >= 2:
-                    timestamp = timestamp_parts[-1]  # e.g., "20250724_164521"
+                mode_and_rest = filename_parts[1]  # e.g., "iterative-gpt-4-1-20250724_164521"
+                rest_parts = mode_and_rest.split('-')
+                
+                # Find timestamp (looks like YYYYMMDD_HHMMSS)
+                timestamp_idx = -1
+                model_name = ""
+                for i, part in enumerate(rest_parts):
+                    if len(part) == 15 and '_' in part and part.replace('_', '').replace('-', '').isdigit():
+                        timestamp_idx = i
+                        timestamp = part
+                        # Everything between mode and timestamp is model name
+                        if i > 1:  # Skip mode part
+                            model_name = '-'.join(rest_parts[1:i])
+                        break
+                
+                if timestamp_idx > 0 and model_name:
+                    pdf_name = f"{base_name}-{model_name}-{timestamp}.pdf"
+                elif timestamp_idx > 0:
                     pdf_name = f"{base_name}-{timestamp}.pdf"
                 else:
                     # Fallback: use current timestamp

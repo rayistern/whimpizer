@@ -763,6 +763,11 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
         output_dir = Path(self.config['processing']['output_dir'])
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
+        # Get model name and sanitize for filename
+        model_name = self.ai_provider.config['model']
+        # Replace dots and other problematic characters with dashes
+        model_name_safe = model_name.replace('.', '-').replace('/', '-').replace('\\', '-').replace(':', '-')
+        
         # Include line numbers in filename if provided
         if line_numbers:
             if len(line_numbers) == 1:
@@ -777,7 +782,7 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
         else:
             line_suffix = ""
         
-        output_file = output_dir / f"{group_key}{line_suffix}-whimperized-{mode}-{timestamp}.md"
+        output_file = output_dir / f"{group_key}{line_suffix}-whimperized-{mode}-{model_name_safe}-{timestamp}.md"
         
         try:
             with open(output_file, 'w', encoding='utf-8') as f:
