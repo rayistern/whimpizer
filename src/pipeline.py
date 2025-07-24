@@ -240,11 +240,20 @@ Examples (run from src/ directory):
             # Group files by group key (everything before '-whimperized')
             groups = {}
             for file_path in all_files:
-                # Extract group key from filename like: zaltz-2a-whimperized-iterative-20250724_020623.md
+                # Extract group key from filename - handle both old and new formats:
+                # Old: zaltz-2a-whimperized-iterative-timestamp.md
+                # New: zaltz-2a-16to21-whimperized-iterative-timestamp.md
                 name_parts = file_path.stem.split('-whimperized-')
                 if len(name_parts) >= 2:
-                    group_key = name_parts[0]  # e.g., "zaltz-2a"
+                    full_prefix = name_parts[0]  # e.g., "zaltz-2a" or "zaltz-2a-16to21"
                     mode_and_timestamp = name_parts[1]  # e.g., "iterative-20250724_020623"
+                    
+                    # Extract actual group key (first two dash-separated parts)
+                    prefix_parts = full_prefix.split('-')
+                    if len(prefix_parts) >= 2:
+                        group_key = f"{prefix_parts[0]}-{prefix_parts[1]}"  # e.g., "zaltz-2a"
+                    else:
+                        group_key = full_prefix  # fallback for unexpected formats
                     
                     if target_groups and group_key not in target_groups:
                         continue
@@ -286,8 +295,15 @@ Examples (run from src/ directory):
         
         # Generate PDFs
         for whimper_file, mode in best_files:
-            # Create output PDF name - remove the mode and timestamp parts
-            base_name = whimper_file.stem.split('-whimperized-')[0]  # e.g., "zaltz-2a"
+            # Create output PDF name - extract group key from filename
+            # Handle both old and new formats with line numbers
+            full_prefix = whimper_file.stem.split('-whimperized-')[0]  # e.g., "zaltz-2a" or "zaltz-2a-16to21"
+            prefix_parts = full_prefix.split('-')
+            if len(prefix_parts) >= 2:
+                base_name = f"{prefix_parts[0]}-{prefix_parts[1]}"  # e.g., "zaltz-2a"
+            else:
+                base_name = full_prefix  # fallback
+            
             pdf_name = f"{base_name}.pdf"
             pdf_path = Path(args.pdf_dir) / pdf_name
             

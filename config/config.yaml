@@ -7,15 +7,15 @@ api:
   fallbacks:
     # First fallback model
     fallback_1:
-      provider: "anthropic"
-      model: "claude-3-sonnet-20240229"
+      provider: "openai"
+      model: "gpt4.1"
       max_tokens: 4000
       temperature: 0.7
     
     # Second fallback model  
     fallback_2:
       provider: "openai"
-      model: "gpt-4o-mini"
+      model: "gpt-4.1-mini"
       temperature: 0.7
   
   # Provider-specific settings
