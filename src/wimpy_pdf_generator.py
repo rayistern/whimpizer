@@ -13,6 +13,7 @@ from typing import List, Tuple, Optional, Dict, Any, Set
 from dataclasses import dataclass
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
+import yaml
 
 # ==== Global Wimpy Style Settings ====
 # Update these dicts to tweak the overall appearance in a single place
@@ -72,6 +73,20 @@ except ImportError:
     exit(1)
 
 
+def load_config(config_path: str = "../config/config.yaml") -> Dict[str, Any]:
+    """Load configuration from YAML file"""
+    try:
+        with open(config_path, 'r', encoding='utf-8') as file:
+            config = yaml.safe_load(file)
+            return config or {}
+    except FileNotFoundError:
+        print(f"Warning: Config file not found at {config_path}, using defaults")
+        return {}
+    except Exception as e:
+        print(f"Warning: Error loading config: {e}, using defaults")
+        return {}
+
+
 @dataclass
 class TextStyle:
     """Configuration for text styling"""
@@ -88,9 +103,9 @@ class TextStyle:
 class PageStyle:
     """Configuration for page styling"""
     background_image: Optional[str] = None
-    width: int = 612  # letter size in points
-    height: int = 792
-    margins: Tuple[int, int, int, int] = (72, 72, 72, 72)  # left, top, right, bottom
+    width: int = 360  # 5 inches in points (5 * 72)
+    height: int = 576  # 8 inches in points (8 * 72)
+    margins: Tuple[int, int, int, int] = (50, 50, 15, 50)  # left, top, right, bottom
     text_area_padding: int = 10
 
 
@@ -446,8 +461,9 @@ class MarkdownParser:
 class WimpyPDFGenerator:
     """Main PDF generator class"""
     
-    def __init__(self, resources_dir: str = "../resources"):
+    def __init__(self, resources_dir: str = "../resources", config_path: str = "../config/config.yaml"):
         self.resources = ResourceManager(resources_dir)
+        self.config = load_config(config_path)
         self.page_style = None
         self.canvas = None
         self.text_styles = self._get_text_styles()
@@ -595,6 +611,18 @@ class WimpyPDFGenerator:
         # Filter out 'skip', 'h1', and 'h3' elements
         parsed_content = [item for item in cleaned_content if item[0] not in ['skip', 'h1', 'h3']]
         
+        # Get page dimensions from config
+        pdf_config = self.config.get('pdf', {})
+        page_size_config = pdf_config.get('page_size', {})
+        width_inches = page_size_config.get('width_inches', 5)  # Default to 5 inches
+        height_inches = page_size_config.get('height_inches', 8)  # Default to 8 inches
+        
+        # Convert inches to points (1 inch = 72 points)
+        page_width = int(width_inches * 72)
+        page_height = int(height_inches * 72)
+        
+        print(f"Using page size: {width_inches}\" x {height_inches}\" ({page_width} x {page_height} points)")
+
         # Setup page style
         if style == "notebook":
             bg_image = self.resources.get_image("single_page")
@@ -602,11 +630,15 @@ class WimpyPDFGenerator:
                 print("Warning: Using default notebook background (no single_page.png found)")
             self.page_style = PageStyle(
                 background_image=bg_image,
+                width=page_width,
+                height=page_height,
                 margins=PAGE_MARGINS['notebook'],
                 text_area_padding=TEXT_AREA_PADDING
             )
         else:
             self.page_style = PageStyle(
+                width=page_width,
+                height=page_height,
                 margins=PAGE_MARGINS['plain'],
                 text_area_padding=TEXT_AREA_PADDING
             )
@@ -1119,8 +1151,9 @@ def main():
     
     args = parser.parse_args()
     
-    # Initialize generator
-    generator = WimpyPDFGenerator(args.resources)
+    # Initialize generator with config path
+    config_path = os.path.join(os.path.dirname(args.resources), 'config', 'config.yaml')
+    generator = WimpyPDFGenerator(args.resources, config_path)
     
     # List resources if requested
     if args.list_resources:

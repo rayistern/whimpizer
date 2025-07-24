@@ -15,7 +15,7 @@ api:
     # Second fallback model  
     fallback_2:
       provider: "openai"
-      model: "gpt-4.1-mini"
+      model: "gpt-4o-mini"
       temperature: 0.7
   
   # Provider-specific settings
@@ -24,7 +24,7 @@ api:
       base_url: "https://api.openai.com/v1"
       model: "gpt-4.1"  # Reasoning model - fixed typo from o4-mini
       # max_tokens: 327680  # Commented out - not needed for most use cases
-      temperature: 1
+      temperature: 0.7
     
     anthropic:
       base_url: "https://api.anthropic.com"
@@ -41,6 +41,12 @@ api:
 processing:
   input_dir: "../output/downloaded_content"
   output_dir: "../output/whimperized_content"
+
+# PDF Generation Settings
+pdf:
+  page_size:
+    width_inches: 8.5    # Width in inches
+    height_inches: 11   # Height in inches
   
 # File naming patterns
 patterns:

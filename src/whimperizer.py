@@ -582,6 +582,13 @@ class Whimperizer:
         # Calculate total input length for logging
         total_chars = sum(len(msg['content']) for msg in messages)
         logger.info(f"Total input length: {total_chars:,} characters")
+        logger.debug(f"Fallback API call: Received {len(messages)} messages")
+        
+        # Debug: Log first and last few messages to track conversation state
+        if len(messages) > 0:
+            logger.debug(f"First message ({messages[0]['role']}): {len(messages[0]['content'])} chars")
+        if len(messages) > 1:
+            logger.debug(f"Last message ({messages[-1]['role']}): {len(messages[-1]['content'])} chars")
         
         # Try primary provider first
         provider_attempts = [
@@ -708,6 +715,11 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
                     })
                     
                     # Get response for this file using fallback system
+                    # Log the current conversation state for debugging
+                    logger.debug(f"Iterative API call {i}: Sending {len(messages)} messages to AI")
+                    for idx, msg in enumerate(messages):
+                        logger.debug(f"  Message {idx+1} ({msg['role']}): {len(msg['content'])} chars")
+                    
                     result = self.call_ai_api_with_fallbacks(messages)
                     
                     if result:
@@ -720,6 +732,7 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
                             "role": "assistant",
                             "content": result
                         })
+                        logger.debug(f"After iteration {i}: Conversation has {len(messages)} messages")
                     else:
                         logger.error(f"Failed to process file {file_info['filename']} - all fallbacks exhausted")
                         print(f"   💥 Failed to process {file_info['filename']} - all API providers and fallbacks exhausted")
