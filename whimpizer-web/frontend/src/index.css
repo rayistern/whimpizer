@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Wimpy Kid Font Imports */
+@font-face {
+  font-family: 'WimpyKid';
+  src: url('/fonts/WimpyKid (1).ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'WimpyKidDialogue';
+  src: url('/fonts/WimpyKidDialogue (1).ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'WimpyCover';
+  src: url('/fonts/Wimpycoverv2-Regular (1).ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rowley';
+  src: url('/fonts/Rowley2.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Kongtext';
+  src: url('/fonts/Kongtext (2).ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Custom Wimpy Kid themed styles */
+@layer base {
+  body {
+    font-family: 'WimpyKidDialogue', 'Comic Sans MS', cursive;
+    background-color: #f8fafc;
+  }
+  
+  h1, h2, h3 {
+    font-family: 'WimpyKid', 'Comic Sans MS', cursive;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-wimpy-blue text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 shadow-md;
+  }
+  
+  .btn-secondary {
+    @apply bg-white text-wimpy-blue border-2 border-wimpy-blue px-6 py-3 rounded-lg font-semibold hover:bg-wimpy-blue hover:text-white transition-colors duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-lg border border-gray-200 p-6;
+  }
+  
+  .notebook-paper {
+    background-image: 
+      linear-gradient(to right, #fef7cd 0%, #fef7cd 2%, transparent 2%),
+      repeating-linear-gradient(
+        transparent,
+        transparent 1.5rem,
+        #ddd 1.5rem,
+        #ddd calc(1.5rem + 1px)
+      );
+    background-size: 100% 100%;
+  }
+  
+  .doodle-border {
+    border-style: dashed;
+    border-width: 2px;
+    border-color: #94a3b8;
+    border-radius: 12px;
+  }
+  
+  .wimpy-gradient {
+    background: linear-gradient(135deg, #fbbf24 0%, #f97316 50%, #ef4444 100%);
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .rotate-slightly {
+    transform: rotate(-1deg);
+  }
+  
+  .comic-style {
+    font-family: 'WimpyKid', 'Comic Sans MS', cursive;
+    font-weight: bold;
+    text-shadow: 2px 2px 0px #000;
+  }
+  
+  .wimpy-dialogue {
+    font-family: 'WimpyKidDialogue', 'Comic Sans MS', cursive;
+  }
+  
+  .wimpy-cover {
+    font-family: 'WimpyCover', 'Impact', sans-serif;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+  }
+}
