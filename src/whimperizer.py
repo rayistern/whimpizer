@@ -675,21 +675,23 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
             logger.error(f"Error in iterative API processing: {e}")
             return None
     
-    def save_output(self, group_key, content):
+    def save_output(self, group_key, content, mode="normal"):
         """Save the whimperized content to output file"""
         from datetime import datetime
         
         output_dir = Path(self.config['processing']['output_dir'])
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = output_dir / f"{group_key}-whimperized-{timestamp}.md"
+        output_file = output_dir / f"{group_key}-whimperized-{mode}-{timestamp}.md"
         
         try:
             with open(output_file, 'w', encoding='utf-8') as f:
                 f.write(content)
-            logger.info(f"Saved whimperized content to: {output_file}")
-            return True
+            logger.info(f"Saved {mode} whimperized content to: {output_file}")
+            print(f"   💾 Saved {mode} version to: {output_file}")
+            return str(output_file)  # Return filename for summary
         except Exception as e:
             logger.error(f"Error saving output file {output_file}: {e}")
+            print(f"   ❌ Failed to save {mode} version: {output_file}")
             return False
     
     def process_group(self, group_key, group_files):
@@ -715,30 +717,45 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
             # Error details already shown by AI provider
             return False
         
+        # Save the initial response
+        normal_file = self.save_output(group_key, whimperized_content, "normal")
+        
         # Always use iterative processing for more complete results
         logger.info(f"Starting iterative processing for more comprehensive coverage...")
         print(f"🔄 Using iterative processing for comprehensive whimperization...")
         
         followup_response = self.call_iterative_api(group_files, whimperized_content)
         
-        if followup_response and len(followup_response) > len(whimperized_content):
-            logger.info(f"Iterative processing provided longer response ({len(followup_response)} vs {len(whimperized_content)} chars)")
-            print(f"📈 Iterative processing expanded content: {len(whimperized_content):,} → {len(followup_response):,} chars")
-            whimperized_content = followup_response
-        elif followup_response:
-            logger.info(f"Iterative processing provided same/shorter response, keeping original")
+        final_content = whimperized_content
+        final_mode = "normal"
+        iterative_file = None
+        
+        if followup_response:
+            # Save the iterative response
+            iterative_file = self.save_output(group_key, followup_response, "iterative")
+            
+            if len(followup_response) > len(whimperized_content):
+                logger.info(f"Iterative processing provided longer response ({len(followup_response)} vs {len(whimperized_content)} chars)")
+                print(f"📈 Iterative processing expanded content: {len(whimperized_content):,} → {len(followup_response):,} chars")
+                print(f"🎯 Using iterative version for final output")
+                final_content = followup_response
+                final_mode = "iterative"
+            else:
+                logger.info(f"Iterative processing provided same/shorter response, keeping original")
+                print(f"🎯 Using normal version for final output")
         else:
             logger.warning("Iterative processing failed, keeping original response")
+            print(f"🎯 Using normal version for final output")
         
-        # Log content-only character counts (input files vs output, excluding conversation history)
+        # Log content-only character counts (input files vs final output, excluding conversation history)
         input_chars = len(combined_content)
-        output_chars = len(whimperized_content)
+        output_chars = len(final_content)
         ratio = output_chars / input_chars if input_chars > 0 else 0
         change_percent = ((output_chars - input_chars) / input_chars * 100) if input_chars > 0 else 0
         
         logger.info(f"=== CONTENT TRANSFORMATION METRICS ===")
         logger.info(f"Input content (files only): {input_chars:,} characters")
-        logger.info(f"Output content: {output_chars:,} characters")
+        logger.info(f"Final output content ({final_mode}): {output_chars:,} characters")
         logger.info(f"Size ratio: {ratio:.2f}x")
         if change_percent >= 0:
             logger.info(f"Content expansion: +{change_percent:.1f}%")
@@ -748,13 +765,18 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
         # Console output with content metrics
         if change_percent >= 0:
             print(f"✅ Successfully whimperized group {group_key}")
-            print(f"   📈 Content expanded: {input_chars:,} → {output_chars:,} chars (+{change_percent:.1f}%)")
+            print(f"   📈 Final content expanded: {input_chars:,} → {output_chars:,} chars (+{change_percent:.1f}%)")
         else:
             print(f"✅ Successfully whimperized group {group_key}")
-            print(f"   📉 Content condensed: {input_chars:,} → {output_chars:,} chars ({change_percent:.1f}%)")
+            print(f"   📉 Final content condensed: {input_chars:,} → {output_chars:,} chars ({change_percent:.1f}%)")
         
-        # Save output
-        return self.save_output(group_key, whimperized_content)
+        # Return info about both files and which one to use
+        return {
+            "normal_file": normal_file,
+            "iterative_file": iterative_file,
+            "final_mode": final_mode,
+            "final_file": iterative_file if final_mode == "iterative" else normal_file
+        }
     
     def run(self, target_groups=None):
         """Main processing function"""
@@ -784,13 +806,16 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
         
         # Process each group
         successful = 0
+        group_results = []
         total = len(grouped_files)
         
         print(f"\n📁 Processing {total} group(s) with {self.provider_name}:")
         
         for group_key, group_files in grouped_files.items():
-            if self.process_group(group_key, group_files):
+            result = self.process_group(group_key, group_files)
+            if result:
                 successful += 1
+                group_results.append(result)
         
         # Final summary
         logger.info(f"Processing complete: {successful}/{total} groups successful")
@@ -799,7 +824,17 @@ Please give me another Wimpy Kid style diary entry for this incident. Keep the s
         if successful < total:
             print(f"⚠️  {total - successful} group(s) failed - see error details above")
         elif successful > 0:
-            print(f"✨ All groups processed successfully! Check whimperized_content/ for output files")
+            output_dir = Path(self.config['processing']['output_dir']).resolve()
+            print(f"✨ All groups processed successfully!")
+            print(f"\n📁 Output directory: {output_dir}")
+            print(f"📝 Generated files:")
+            for result in group_results:
+                print(f"   • {Path(result['normal_file']).name} (normal)")
+                if result['iterative_file']:
+                    print(f"   • {Path(result['iterative_file']).name} (iterative)")
+                print(f"   🎯 Final choice: {Path(result['final_file']).name} ({result['final_mode']})")
+        
+        return group_results
 
 def main():
     parser = argparse.ArgumentParser(description='Whimperize downloaded content into children\'s stories')

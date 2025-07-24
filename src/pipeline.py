@@ -231,32 +231,64 @@ Examples (run from src/ directory):
     if not args.skip_pdf and success:
         print("\n📚 Step 3: Generating PDFs...")
         
-        # Find whimperized files
-        whimper_files = list(Path(args.whimper_dir).glob('*whimperized*.md'))
-        whimper_files.extend(list(Path(args.whimper_dir).glob('*whimperized*.txt')))
+        # Find whimperized files with smart selection between normal and iterative versions
+        def find_best_whimperized_files(whimper_dir, target_groups=None):
+            """Find the best whimperized file for each group (iterative > normal)"""
+            all_files = list(Path(whimper_dir).glob('*whimperized*.md'))
+            all_files.extend(list(Path(whimper_dir).glob('*whimperized*.txt')))
+            
+            # Group files by group key (everything before '-whimperized')
+            groups = {}
+            for file_path in all_files:
+                # Extract group key from filename like: zaltz-2a-whimperized-iterative-20250724_020623.md
+                name_parts = file_path.stem.split('-whimperized-')
+                if len(name_parts) >= 2:
+                    group_key = name_parts[0]  # e.g., "zaltz-2a"
+                    mode_and_timestamp = name_parts[1]  # e.g., "iterative-20250724_020623"
+                    
+                    if target_groups and group_key not in target_groups:
+                        continue
+                        
+                    if group_key not in groups:
+                        groups[group_key] = {}
+                    
+                    if mode_and_timestamp.startswith('iterative-'):
+                        groups[group_key]['iterative'] = file_path
+                    elif mode_and_timestamp.startswith('normal-'):
+                        groups[group_key]['normal'] = file_path
+            
+            # Select best file for each group (iterative > normal)
+            best_files = []
+            for group_key, versions in groups.items():
+                if 'iterative' in versions:
+                    chosen_file = versions['iterative']
+                    mode = 'iterative'
+                elif 'normal' in versions:
+                    chosen_file = versions['normal']
+                    mode = 'normal'
+                else:
+                    continue
+                
+                best_files.append((chosen_file, mode))
+                print(f"📄 Group {group_key}: Using {mode} version")
+            
+            return best_files
         
-        if not whimper_files:
+        best_files = find_best_whimperized_files(args.whimper_dir, args.groups)
+        
+        if not best_files:
             print(f"❌ No whimperized files found in {args.whimper_dir}")
+            if args.groups:
+                print(f"   For groups: {args.groups}")
             sys.exit(1)
         
-        if args.groups:
-            # Filter files for specific groups
-            filtered_files = []
-            for group in args.groups:
-                group_files = [f for f in whimper_files if group in f.name]
-                filtered_files.extend(group_files)
-            whimper_files = filtered_files
-        
-        if not whimper_files:
-            print(f"❌ No whimperized files found for groups: {args.groups}")
-            sys.exit(1)
-        
-        print(f"Found {len(whimper_files)} whimperized files")
+        print(f"Found {len(best_files)} optimal whimperized files")
         
         # Generate PDFs
-        for whimper_file in whimper_files:
-            # Create output PDF name
-            pdf_name = whimper_file.stem.replace('-whimperized', '') + '.pdf'
+        for whimper_file, mode in best_files:
+            # Create output PDF name - remove the mode and timestamp parts
+            base_name = whimper_file.stem.split('-whimperized-')[0]  # e.g., "zaltz-2a"
+            pdf_name = f"{base_name}.pdf"
             pdf_path = Path(args.pdf_dir) / pdf_name
             
             cmd = [
@@ -280,12 +312,12 @@ Examples (run from src/ directory):
             if args.dry_run:
                 print(f"Would run: {' '.join(cmd)}")
             else:
-                success = run_command(cmd, f"Generating PDF: {pdf_name}", args.verbose)
+                success = run_command(cmd, f"Generating PDF: {pdf_name} (from {mode} version)", args.verbose)
                 if not success:
-                    print(f"❌ PDF generation failed for {whimper_file}")
+                    print(f"❌ PDF generation failed for {whimper_file.name} ({mode} version)")
                     # Continue with other files
                 else:
-                    print(f"✅ Generated: {pdf_path}")
+                    print(f"✅ Generated: {pdf_path} (from {mode} version)")
     else:
         print("⏭️  Skipping PDF generation")
     
