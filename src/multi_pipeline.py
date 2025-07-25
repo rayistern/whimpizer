@@ -1,22 +1,34 @@
 #!/usr/bin/env python3
 """
-Complete Whimperizer Pipeline
-Orchestrates the full process: Download → AI Transform → PDF Generation
+Multi-Run Pipeline for Whimperizer
+Complete pipeline: Download → Multi-Run AI Transform → Consolidate → PDF Generation
 """
 
 import os
 import sys
 import argparse
 import subprocess
+import logging
 import time
 from pathlib import Path
 from typing import List, Optional
 
+def setup_logging(verbose: bool = False):
+    """Setup logging for multi-pipeline"""
+    level = logging.DEBUG if verbose else logging.INFO
+    logging.basicConfig(
+        level=level,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+    return logging.getLogger(__name__)
+
 def run_command(cmd: List[str], description: str, verbose: bool = False) -> bool:
     """Run a command and handle errors"""
+    logger = logging.getLogger(__name__)
+    
     if verbose:
-        print(f"\n🔄 {description}")
-        print(f"Command: {' '.join(cmd)}")
+        logger.info(f"\n🔄 {description}")
+        logger.info(f"Command: {' '.join(cmd)}")
     
     try:
         result = subprocess.run(cmd, capture_output=not verbose, text=True, check=True)
@@ -24,20 +36,21 @@ def run_command(cmd: List[str], description: str, verbose: bool = False) -> bool
             print(result.stdout)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Error in {description}:")
-        print(f"Command: {' '.join(cmd)}")
-        print(f"Exit code: {e.returncode}")
+        logger.error(f"❌ Error in {description}:")
+        logger.error(f"Command: {' '.join(cmd)}")
+        logger.error(f"Exit code: {e.returncode}")
         if e.stderr:
-            print(f"Error: {e.stderr}")
+            logger.error(f"Error: {e.stderr}")
         if e.stdout:
-            print(f"Output: {e.stdout}")
+            logger.error(f"Output: {e.stdout}")
         return False
 
 def check_dependencies():
     """Check if required Python files exist"""
     required_files = [
         'bulk_downloader.py',
-        'whimperizer.py', 
+        'multi_runner.py',
+        'consolidator.py',
         'wimpy_pdf_generator.py'
     ]
     
@@ -47,48 +60,40 @@ def check_dependencies():
             missing.append(file)
     
     if missing:
-        print(f"❌ Missing required files: {', '.join(missing)}")
+        logging.getLogger(__name__).error(f"❌ Missing required files: {', '.join(missing)}")
         return False
     return True
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Complete Whimperizer Pipeline: Download → AI Transform → PDF Generation",
+        description="Multi-Run Pipeline for Whimperizer: Download → Multi-Run AI Transform → Consolidate → PDF Generation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples (run from src/ directory):
-  # Basic pipeline (uses selenium by default for better success rate)
-  python pipeline.py --groups zaltz-1a
+  # Basic multi-run pipeline with 3 runs
+  python multi_pipeline.py --runs 3 --groups zaltz-1a
   
-  # Specify AI model by editing ../config/config.yaml first, then:
-  python pipeline.py --provider openai --groups zaltz-1a
+  # Multi-run with specific provider for first run
+  python multi_pipeline.py --runs 3 --provider openai --groups zaltz-1a --verbose
   
-  # Full pipeline with recommended settings
-  python pipeline.py --provider anthropic --groups zaltz-1a --headless --download-delay 3.0 --pdf-style notebook --verbose
+  # Skip download, run 2 times, consolidate, and generate PDFs
+  python multi_pipeline.py --skip-download --runs 2 --groups zaltz-1a
   
-  # If downloads are blocked, try different approaches:
-  python pipeline.py --groups zaltz-1a --download-delay 5.0 --headless
-  python pipeline.py --groups zaltz-1a --downloader basic --download-format csv
-   
-  # Use different input file
-  python pipeline.py --urls ../data/urls.txt --groups zaltz-1a
-   
-  # Skip steps if you have existing content
-  python pipeline.py --skip-download --provider anthropic --groups zaltz-1a
-  python pipeline.py --skip-download --skip-whimperize --groups zaltz-1a  # PDFs only
-   
-  # Process multiple groups
-  python pipeline.py --groups zaltz-1a zaltz-1b --provider openai
-   
-  # Custom directories
-  python pipeline.py --groups zaltz-1a --download-dir ../content --whimper-dir ../stories --pdf-dir ../books
+  # Run consolidation only (independent mode)
+  python multi_pipeline.py --consolidate-only --groups zaltz-1a
   
-  # Available AI models (edit ../config/config.yaml first):
-  # OpenAI: gpt-4o, gpt-4-turbo, o1-preview, o1-mini
-  # Anthropic: claude-3-sonnet-20240229, claude-3-opus-20240229  
-  # Google: gemini-pro
+  # Full pipeline with custom settings
+  python multi_pipeline.py --runs 4 --groups zaltz-1a --download-delay 3.0 --pdf-style notebook --verbose
         """
     )
+    
+    # Multi-run specific options
+    parser.add_argument('--runs', '-r', type=int, default=1,
+                        help='Number of times to run whimperizer (default: 1 - standard single run)')
+    parser.add_argument('--consolidate-only', action='store_true',
+                        help='Only run consolidation step (skip download and whimperize)')
+    parser.add_argument('--skip-consolidate', action='store_true',
+                        help='Skip consolidation step (useful for single runs)')
     
     # Input/Output Options
     parser.add_argument('--urls', '-u', type=str, default='../data/urls.csv',
@@ -110,57 +115,56 @@ Examples (run from src/ directory):
     
     # Download Options
     parser.add_argument('--downloader', choices=['basic', 'selenium'], default='selenium',
-                        help='Downloader to use (default: selenium - better for bypassing blocks)')
+                        help='Downloader to use (default: selenium)')
     parser.add_argument('--download-format', choices=['json', 'csv', 'txt'], default='txt',
-                        help='Download format - only applies to basic downloader (default: txt)')
+                        help='Download format - only for basic downloader (default: txt)')
     parser.add_argument('--download-delay', type=float, default=1.0,
-                        help='Delay between downloads in seconds (default: 1.0, recommend 3-5 for selenium)')
+                        help='Delay between downloads in seconds (default: 1.0)')
     parser.add_argument('--headless', action='store_true',
-                        help='Run selenium in headless mode (no visible browser window)')
+                        help='Run selenium in headless mode')
     
     # AI/Whimperizer Options
     parser.add_argument('--provider', choices=['openai', 'anthropic', 'google'],
-                        help='AI provider (default: from config)')
+                        help='AI provider for first run (default: from config)')
     parser.add_argument('--groups', nargs='+', metavar='GROUP',
                         help='Process specific groups (e.g., zaltz-1a zaltz-1b)')
-    parser.add_argument('--list-groups', action='store_true',
-                        help='List available groups and exit')
     parser.add_argument('--config', type=str, default='../config/config.yaml',
                         help='Configuration file (default: ../config/config.yaml)')
-    parser.add_argument('--runs', '-r', type=int, default=1,
-                        help='Number of AI runs with consolidation (default: 1). Use multi_pipeline.py for advanced multi-run features.')
     
     # PDF Generation Options
     parser.add_argument('--pdf-style', choices=['notebook', 'blank'], default='notebook',
                         help='PDF page style (default: notebook)')
     parser.add_argument('--pdf-font', type=str,
                         help='PDF font name (auto-detects Wimpy Kid fonts)')
-    parser.add_argument('--pdf-background', type=str,
-                        help='PDF background template')
     parser.add_argument('--resources-dir', type=str, default='../resources',
                         help='Resources directory (default: ../resources)')
     
     # General Options
     parser.add_argument('--verbose', '-v', action='store_true',
                         help='Verbose output')
-    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
-                        help='Logging level')
     parser.add_argument('--dry-run', action='store_true',
                         help='Show what would be done without executing')
     
     args = parser.parse_args()
     
+    logger = setup_logging(args.verbose)
+    
+    # Validate arguments
+    if args.consolidate_only and args.skip_consolidate:
+        logger.error("Cannot use both --consolidate-only and --skip-consolidate")
+        sys.exit(1)
+    
+    if args.consolidate_only:
+        logger.info("🎯 Running in consolidation-only mode")
+    elif args.runs == 1 and not args.skip_consolidate:
+        logger.info("📝 Single run mode - consolidation will be skipped automatically")
+        args.skip_consolidate = True
+    elif args.runs > 1:
+        logger.info(f"🔄 Multi-run mode: {args.runs} runs with consolidation")
+    
     # Check dependencies
     if not check_dependencies():
         sys.exit(1)
-    
-    # Handle list-groups
-    if args.list_groups:
-        cmd = ['python', 'whimperizer.py', '--list-groups']
-        if args.config != '../config/config.yaml':
-            cmd.extend(['--config', args.config])
-        subprocess.run(cmd)
-        return
     
     # Create output directories
     Path(args.download_dir).mkdir(exist_ok=True)
@@ -169,9 +173,9 @@ Examples (run from src/ directory):
     
     success = True
     
-    # Step 1: Download Content
-    if not args.skip_download:
-        print("📥 Step 1: Downloading content...")
+    # Step 1: Download Content (unless consolidate-only or skip-download)
+    if not args.consolidate_only and not args.skip_download:
+        logger.info("📥 Step 1: Downloading content...")
         
         downloader = 'bulk_downloader.py' if args.downloader == 'basic' else 'selenium_downloader.py'
         cmd = [
@@ -181,7 +185,6 @@ Examples (run from src/ directory):
             '--delay', str(args.download_delay)
         ]
         
-        # Only basic downloader supports format selection
         if args.downloader == 'basic':
             cmd.extend(['--format', args.download_format])
         
@@ -189,19 +192,19 @@ Examples (run from src/ directory):
             cmd.append('--headless')
         
         if args.dry_run:
-            print(f"Would run: {' '.join(cmd)}")
+            logger.info(f"Would run: {' '.join(cmd)}")
         else:
             success = run_command(cmd, "Downloading content", args.verbose)
             if not success:
-                print("❌ Download failed")
+                logger.error("❌ Download failed")
                 sys.exit(1)
-    else:
-        print("⏭️  Skipping download (using existing content)")
+    elif not args.consolidate_only:
+        logger.info("⏭️  Skipping download (using existing content)")
     
-    # Step 2: AI Transformation
-    if not args.skip_whimperize and success:
+    # Step 2: Multi-Run AI Transformation (unless consolidate-only or skip-whimperize)
+    if not args.consolidate_only and not args.skip_whimperize and success:
         if args.runs > 1:
-            print(f"\n🤖 Step 2: Multi-run AI transformation ({args.runs} runs)...")
+            logger.info(f"\n🤖 Step 2: Multi-run AI transformation ({args.runs} runs)...")
             
             cmd = [
                 'python', 'multi_runner.py',
@@ -216,43 +219,20 @@ Examples (run from src/ directory):
                 cmd.append('--verbose')
             
             if args.dry_run:
-                print(f"Would run: {' '.join(cmd)}")
+                cmd.append('--dry-run')
+            
+            if args.dry_run:
+                logger.info(f"Would run: {' '.join(cmd)}")
             else:
                 success = run_command(cmd, f"Multi-run AI transformation ({args.runs} runs)", args.verbose)
                 if not success:
-                    print("❌ Multi-run AI transformation failed")
+                    logger.error("❌ Multi-run AI transformation failed")
                     sys.exit(1)
-            
-            # Step 2.5: Consolidation (if multi-run)
-            print("\n🔗 Step 2.5: Consolidating multiple outputs...")
-            
-            cmd = [
-                'python', 'consolidator.py',
-                '--whimper-dir', args.whimper_dir,
-                '--output-dir', args.whimper_dir,
-                '--config', args.config
-            ]
-            
-            if args.groups:
-                cmd.extend(['--groups'] + args.groups)
-            
-            if args.verbose:
-                cmd.append('--verbose')
-            
-            if args.dry_run:
-                print(f"Would run: {' '.join(cmd)}")
-            else:
-                consolidate_success = run_command(cmd, "Consolidating outputs", args.verbose)
-                if not consolidate_success:
-                    print("❌ Consolidation failed - will continue with individual runs for PDF generation")
-                    # Don't exit - we can still make PDFs from individual runs
         else:
-            print("\n🤖 Step 2: AI transformation...")
+            # Single run - use original whimperizer
+            logger.info("\n🤖 Step 2: AI transformation (single run)...")
             
-            cmd = ['python', 'whimperizer.py']
-            
-            if args.config != '../config/config.yaml':
-                cmd.extend(['--config', args.config])
+            cmd = ['python', 'whimperizer.py', '--config', args.config]
             
             if args.provider:
                 cmd.extend(['--provider', args.provider])
@@ -263,46 +243,71 @@ Examples (run from src/ directory):
             if args.verbose:
                 cmd.append('--verbose')
             
-            if args.log_level:
-                cmd.extend(['--log-level', args.log_level])
-            
             if args.dry_run:
-                print(f"Would run: {' '.join(cmd)}")
+                logger.info(f"Would run: {' '.join(cmd)}")
             else:
                 success = run_command(cmd, "AI transformation", args.verbose)
                 if not success:
-                    print("❌ AI transformation failed")
+                    logger.error("❌ AI transformation failed")
                     sys.exit(1)
-    else:
-        print("⏭️  Skipping whimperize (using existing content)")
+    elif not args.consolidate_only:
+        logger.info("⏭️  Skipping whimperize (using existing content)")
     
-    # Step 3: PDF Generation
-    if not args.skip_pdf and success:
-        print("\n📚 Step 3: Generating PDFs...")
+    # Step 3: Consolidation (if multi-run and not skipped)
+    if not args.skip_consolidate and (args.consolidate_only or args.runs > 1) and success:
+        logger.info("\n🔗 Step 3: Consolidating multiple outputs...")
         
-        # Find whimperized files with smart selection between normal and iterative versions
+        cmd = [
+            'python', 'consolidator.py',
+            '--whimper-dir', args.whimper_dir,
+            '--output-dir', args.whimper_dir,
+            '--config', args.config
+        ]
+        
+        if args.groups:
+            cmd.extend(['--groups'] + args.groups)
+        
+        if args.verbose:
+            cmd.append('--verbose')
+        
+        if args.dry_run:
+            cmd.append('--dry-run')
+        
+        if args.dry_run:
+            logger.info(f"Would run: {' '.join(cmd)}")
+        else:
+            success = run_command(cmd, "Consolidating outputs", args.verbose)
+            if not success:
+                logger.error("❌ Consolidation failed")
+                # Continue - we might still have individual runs to make PDFs from
+    elif args.runs > 1:
+        logger.info("⏭️  Skipping consolidation")
+    
+    # Step 4: PDF Generation (unless consolidate-only or skip-pdf)
+    if not args.consolidate_only and not args.skip_pdf and success:
+        logger.info("\n📚 Step 4: Generating PDFs...")
+        
+        # Import the PDF generation logic from original pipeline
+        from pathlib import Path
+        
         def find_best_whimperized_files(whimper_dir, target_groups=None):
-            """Find the best whimperized file for each group (iterative > normal)"""
+            """Find the best whimperized file for each group (consolidated > iterative > normal)"""
             all_files = list(Path(whimper_dir).glob('*whimperized*.md'))
             all_files.extend(list(Path(whimper_dir).glob('*whimperized*.txt')))
             
-            # Group files by group key (everything before '-whimperized')
+            # Group files by group key
             groups = {}
             for file_path in all_files:
-                # Extract group key from filename - handle both old and new formats:
-                # Old: zaltz-2a-whimperized-iterative-timestamp.md
-                # New: zaltz-2a-16to21-whimperized-iterative-timestamp.md
                 name_parts = file_path.stem.split('-whimperized-')
                 if len(name_parts) >= 2:
-                    full_prefix = name_parts[0]  # e.g., "zaltz-2a" or "zaltz-2a-16to21"
-                    mode_and_timestamp = name_parts[1]  # e.g., "iterative-20250724_020623"
+                    full_prefix = name_parts[0]
+                    mode_and_timestamp = name_parts[1]
                     
-                    # Extract actual group key (first two dash-separated parts)
                     prefix_parts = full_prefix.split('-')
                     if len(prefix_parts) >= 2:
-                        group_key = f"{prefix_parts[0]}-{prefix_parts[1]}"  # e.g., "zaltz-2a"
+                        group_key = f"{prefix_parts[0]}-{prefix_parts[1]}"
                     else:
-                        group_key = full_prefix  # fallback for unexpected formats
+                        group_key = full_prefix
                     
                     if target_groups and group_key not in target_groups:
                         continue
@@ -333,65 +338,59 @@ Examples (run from src/ directory):
                     continue
                 
                 best_files.append((chosen_file, mode))
-                print(f"📄 Group {group_key}: Using {mode} version")
+                logger.info(f"📄 Group {group_key}: Using {mode} version")
             
             return best_files
         
         best_files = find_best_whimperized_files(args.whimper_dir, args.groups)
         
         if not best_files:
-            print(f"❌ No whimperized files found in {args.whimper_dir}")
+            logger.error(f"❌ No whimperized files found in {args.whimper_dir}")
             if args.groups:
-                print(f"   For groups: {args.groups}")
+                logger.error(f"   For groups: {args.groups}")
             sys.exit(1)
         
-        print(f"Found {len(best_files)} optimal whimperized files")
+        logger.info(f"Found {len(best_files)} whimperized files to convert")
         
         # Generate PDFs
         for whimper_file, mode in best_files:
-            # Create output PDF name - extract group key and timestamp from filename
-            # Handle both old and new formats with line numbers
-            full_prefix = whimper_file.stem.split('-whimperized-')[0]  # e.g., "zaltz-2a" or "zaltz-2a-16to21"
+            # Create output PDF name
+            full_prefix = whimper_file.stem.split('-whimperized-')[0]
             prefix_parts = full_prefix.split('-')
             if len(prefix_parts) >= 2:
-                base_name = f"{prefix_parts[0]}-{prefix_parts[1]}"  # e.g., "zaltz-2a"
+                base_name = f"{prefix_parts[0]}-{prefix_parts[1]}"
             else:
-                base_name = full_prefix  # fallback
+                base_name = full_prefix
             
-            # Extract timestamp and model name from whimperized filename
-            # New format: zaltz-2a-16to21-whimperized-iterative-gpt-4-1-20250724_164521.md
-            # Old format: zaltz-2a-16to21-whimperized-iterative-20250724_164521.md
+            # Extract timestamp and model name
             filename_parts = whimper_file.stem.split('-whimperized-')
             if len(filename_parts) >= 2:
-                mode_and_rest = filename_parts[1]  # e.g., "iterative-gpt-4-1-20250724_164521"
+                mode_and_rest = filename_parts[1]
                 rest_parts = mode_and_rest.split('-')
                 
-                # Find timestamp (looks like YYYYMMDD_HHMMSS)
+                # Find timestamp
                 timestamp_idx = -1
                 model_name = ""
                 for i, part in enumerate(rest_parts):
                     if len(part) == 15 and '_' in part and part.replace('_', '').replace('-', '').isdigit():
                         timestamp_idx = i
                         timestamp = part
-                        # Everything between mode and timestamp is model name
-                        if i > 1:  # Skip mode part
+                        if i > 1:
                             model_name = '-'.join(rest_parts[1:i])
                         break
                 
                 if timestamp_idx > 0 and model_name:
                     pdf_name = f"{base_name}-{model_name}-{timestamp}.pdf"
                 elif timestamp_idx > 0:
-                    pdf_name = f"{base_name}-{timestamp}.pdf"
+                    pdf_name = f"{base_name}-{mode}-{timestamp}.pdf"
                 else:
-                    # Fallback: use current timestamp
                     from datetime import datetime
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    pdf_name = f"{base_name}-{timestamp}.pdf"
+                    pdf_name = f"{base_name}-{mode}-{timestamp}.pdf"
             else:
-                # Fallback: use current timestamp
                 from datetime import datetime
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                pdf_name = f"{base_name}-{timestamp}.pdf"
+                pdf_name = f"{base_name}-{mode}-{timestamp}.pdf"
             
             pdf_path = Path(args.pdf_dir) / pdf_name
             
@@ -406,35 +405,30 @@ Examples (run from src/ directory):
             if args.pdf_font:
                 cmd.extend(['--font', args.pdf_font])
             
-            if args.pdf_background:
-                cmd.extend(['--background', args.pdf_background])
-            
-            # Note: PDF generation doesn't support --verbose flag
-            # if args.verbose:
-            #     cmd.append('--verbose')
-            
             if args.dry_run:
-                print(f"Would run: {' '.join(cmd)}")
+                logger.info(f"Would run: {' '.join(cmd)}")
             else:
-                success = run_command(cmd, f"Generating PDF: {pdf_name} (from {mode} version)", args.verbose)
-                if not success:
-                    print(f"❌ PDF generation failed for {whimper_file.name} ({mode} version)")
-                    # Continue with other files
+                pdf_success = run_command(cmd, f"Generating PDF: {pdf_name} (from {mode} version)", args.verbose)
+                if pdf_success:
+                    logger.info(f"✅ Generated: {pdf_path} (from {mode} version)")
                 else:
-                    print(f"✅ Generated: {pdf_path} (from {mode} version)")
-    else:
-        print("⏭️  Skipping PDF generation")
+                    logger.error(f"❌ PDF generation failed for {whimper_file.name} ({mode} version)")
+    elif not args.consolidate_only:
+        logger.info("⏭️  Skipping PDF generation")
     
     # Summary
-    print(f"\n{'🎉 Pipeline completed!' if success else '❌ Pipeline completed with errors'}")
+    if args.consolidate_only:
+        logger.info(f"\n{'🎉 Consolidation completed!' if success else '❌ Consolidation completed with errors'}")
+    else:
+        logger.info(f"\n{'🎉 Multi-run pipeline completed!' if success else '❌ Multi-run pipeline completed with errors'}")
     
-    if not args.dry_run:
-        print(f"\nOutput locations:")
-        print(f"  📁 Downloaded content: {args.download_dir}")
-        print(f"  📝 Whimperized content: {args.whimper_dir}")
-        print(f"  📚 PDFs: {args.pdf_dir}")
+    if not args.dry_run and not args.consolidate_only:
+        logger.info(f"\nOutput locations:")
+        logger.info(f"  📁 Downloaded content: {args.download_dir}")
+        logger.info(f"  📝 Whimperized content: {args.whimper_dir}")
+        logger.info(f"  📚 PDFs: {args.pdf_dir}")
     
     return 0 if success else 1
 
 if __name__ == '__main__':
-    sys.exit(main()) 
+    sys.exit(main())

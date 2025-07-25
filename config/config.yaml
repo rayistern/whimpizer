@@ -38,6 +38,30 @@ api:
       max_tokens: 4000
       temperature: 0.7
 
+# Multi-run configuration for generating multiple AI outputs
+multi_run:
+  # Models for multiple runs - if more runs requested than specified, uses default model
+  run_models:
+    run_2_model:
+      provider: "openai"
+      model: "gpt-4o-mini"
+      temperature: 0.8
+    run_3_model:
+      provider: "anthropic"
+      model: "claude-3-sonnet-20240229"
+      temperature: 0.7
+    run_4_model:
+      provider: "openai"
+      model: "gpt-4.1-mini"
+      temperature: 0.6
+  
+  # Consolidation settings
+  consolidation:
+    provider: "openai"
+    model: "gpt-4.1-mini"
+    temperature: 0.7
+    max_tokens: 8000
+
 processing:
   input_dir: "../output/downloaded_content"
   output_dir: "../output/whimperized_content"
