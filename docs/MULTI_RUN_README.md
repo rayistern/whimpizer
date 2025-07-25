@@ -1,12 +1,25 @@
 # Multi-Run Whimperizer System
 
-The multi-run system allows you to generate multiple AI outputs and consolidate them into the best possible final product.
+Generate multiple AI outputs and consolidate them into one final product.
 
-## 🎯 What It Does
+## 📋 Simple Summary
 
-1. **Multi-Run Generation**: Runs the whimperizer multiple times with different AI models
-2. **Smart Consolidation**: Uses AI to combine the best pieces from all runs into one great final product
-3. **Flexible Usage**: Can run independently or as part of the full pipeline
+**What's New:**
+- `pipeline.py` now has `--runs N` flag (auto-consolidates when N > 1)
+- `multi_pipeline.py` same as above + 2 extra flags (`--consolidate-only`, `--skip-consolidate`)
+- `multi_runner.py` runs `whimperizer.py` N times with different models
+- `consolidator.py` takes multiple whimperized files and AI-combines them
+
+**What You Actually Get:**
+- Run whimperizer multiple times with different models
+- AI picks best parts from all runs and combines them
+- Each tool can run independently
+
+## 🎯 What Each Step Does
+
+1. **Multi-Run**: Calls `whimperizer.py` multiple times with different models
+2. **Consolidation**: AI reads all outputs and combines the best parts
+3. **PDF**: Makes PDF from consolidated result (or individual runs if consolidation fails)
 
 ## 🚀 Quick Start
 
@@ -19,7 +32,7 @@ python multi_pipeline.py --runs 3 --groups zaltz-1a
 
 ### Using Original Pipeline with Multi-Run
 ```bash
-# Original pipeline now supports --runs flag
+# Original pipeline now supports --runs flag (auto-consolidates)
 cd src
 python pipeline.py --runs 3 --groups zaltz-1a
 ```
@@ -73,45 +86,47 @@ multi_run:
     max_tokens: 8000
 ```
 
-## 🛠️ Available Tools
+## 🛠️ What Each Tool Actually Does
 
-### 1. `multi_pipeline.py` - Complete Multi-Run Pipeline
-Full pipeline with multi-run support and all advanced features.
+### 1. `multi_pipeline.py` - Pipeline with 2 Extra Options
+Same as `pipeline.py` but adds `--consolidate-only` and `--skip-consolidate` flags.
 
 ```bash
-# Examples
-python multi_pipeline.py --runs 3 --groups zaltz-1a --verbose
-python multi_pipeline.py --consolidate-only --groups zaltz-1a
-python multi_pipeline.py --runs 4 --skip-download --groups zaltz-1a
+# Same as pipeline.py:
+python multi_pipeline.py --runs 3 --groups zaltz-1a
+
+# Only these are unique:
+python multi_pipeline.py --consolidate-only --groups zaltz-1a     # Skip everything, only consolidate
+python multi_pipeline.py --runs 3 --skip-consolidate --groups zaltz-1a  # Multi-run but no consolidation
 ```
 
-### 2. `multi_runner.py` - Multi-Run Engine
-Runs whimperizer multiple times with different models.
+### 2. `multi_runner.py` - Calls Whimperizer Multiple Times
+Literally just runs `python whimperizer.py` N times with different model configs.
 
 ```bash
-# Examples
+# Runs whimperizer.py 3 times (possibly with different models)
 python multi_runner.py --runs 3 --groups zaltz-1a
-python multi_runner.py --runs 2 --config ../config/config.yaml --verbose
 ```
 
-### 3. `consolidator.py` - AI Consolidation
-Combines multiple outputs into one best version.
+### 3. `consolidator.py` - AI Combination Tool
+Takes multiple whimperized files and asks AI to combine the best parts.
 
 ```bash
-# Examples
-python consolidator.py --groups zaltz-1a                          # By group
+# Different ways to specify input files:
+python consolidator.py --groups zaltz-1a                          # Auto-find files for group
 python consolidator.py --files file1.md file2.md file3.md         # Specific files
-python consolidator.py --whimper-dir ../output/whimperized_content # All in directory
-python consolidator.py --groups zaltz-1a --verbose                # Verbose mode
+python consolidator.py --whimper-dir ../output/whimperized_content # All groups in directory
 ```
 
-### 4. `pipeline.py` - Enhanced Original Pipeline
-Original pipeline now supports basic multi-run via `--runs` flag.
+### 4. `pipeline.py` - Original Pipeline + Multi-Run
+Original pipeline that now auto-consolidates when `--runs > 1`.
 
 ```bash
-# Examples
-python pipeline.py --runs 3 --groups zaltz-1a    # Multi-run mode
-python pipeline.py --groups zaltz-1a             # Single run mode
+# Single run (same as before):
+python pipeline.py --groups zaltz-1a             
+
+# Multi-run (calls multi_runner.py + consolidator.py automatically):
+python pipeline.py --runs 3 --groups zaltz-1a    
 ```
 
 ## 📁 File Naming Convention
@@ -137,37 +152,43 @@ Focus areas:
 - Clearest language for children
 - Most creative and imaginative elements
 
-## 🔧 Advanced Usage
+## 🔧 How Model Selection Works
 
-### Model Fallback System
-- If `run_3_model` isn't configured but you request 3 runs, run 3 uses the default model
-- Each run can use different providers (OpenAI, Anthropic, Google)
-- Different temperature settings for variety
+**Multi-Runner Model Priority:**
+1. **Run 1**: Uses default model from config
+2. **Run 2**: Uses `run_2_model` if configured, otherwise default
+3. **Run 3**: Uses `run_3_model` if configured, otherwise default
+4. **Run N**: Uses `run_N_model` if configured, otherwise default
 
-### Independent Operations
+**Each run can have different:**
+- Provider (OpenAI, Anthropic, Google)
+- Model (gpt-4, claude-3, etc.)
+- Temperature (for output variety)
+
+### Running Tools Independently
 ```bash
-# Run only multi-runner (no consolidation or PDFs)
+# Just run whimperizer multiple times (no consolidation, no PDFs):
 python multi_runner.py --runs 3 --groups zaltz-1a
 
-# Run only consolidation (assumes existing multi-run files)
+# Just consolidate existing files (no new whimperizer runs):
 python consolidator.py --groups zaltz-1a
 
-# Run full pipeline but skip consolidation
+# Multi-run but skip consolidation (keep individual outputs):
 python multi_pipeline.py --runs 3 --skip-consolidate --groups zaltz-1a
 ```
 
-### Consolidation Input Methods
+### How Consolidator Finds Files
 ```bash
-# Method 1: By group (auto-finds all files for that group)
+# Auto-find: Search directory for all files matching group names
 python consolidator.py --groups zaltz-1a zaltz-1b
 
-# Method 2: By directory (consolidates all groups found)
+# Auto-find: Process all groups found in directory  
 python consolidator.py --whimper-dir ../output/whimperized_content
 
-# Method 3: Specific files (exact control)
-python consolidator.py --files zaltz-1a-run1.md zaltz-1a-run2.md zaltz-1a-run3.md
+# Manual: Specify exact files to consolidate
+python consolidator.py --files file1.md file2.md file3.md
 
-# Method 4: Mixed approach with custom output
+# Manual + custom output location
 python consolidator.py --files file1.md file2.md --output-dir ../output/custom
 ```
 
@@ -178,25 +199,32 @@ python multi_pipeline.py --runs 3 --groups zaltz-1a --dry-run
 python consolidator.py --groups zaltz-1a --dry-run
 ```
 
-## 🚦 Error Handling
+## 🚦 What Happens When Things Fail
 
-- If individual runs fail, the system continues with successful runs
-- If consolidation fails, PDFs are generated from individual runs
-- Each component can be run independently for debugging
-- Comprehensive logging for troubleshooting
+**If individual whimperizer runs fail:**
+- Multi-runner continues with remaining runs
+- Consolidation uses whatever runs succeeded
+- PDFs generated from available outputs
 
-## 💡 Tips
+**If consolidation fails:**
+- Pipeline continues to PDF generation
+- PDFs made from individual run outputs instead of consolidated version
 
-1. **Start Small**: Try 2-3 runs first to test the system
-2. **Model Diversity**: Use different providers/models for variety
-3. **Temperature Variation**: Different temperatures can produce diverse outputs
-4. **Review Results**: Check consolidated outputs to ensure quality
-5. **Independent Testing**: Test consolidation separately on existing files
+**For debugging:**
+- Each tool can be run separately
+- Use `--verbose` for detailed output
+- Use `--dry-run` to see what would happen
 
-## 🔗 Integration
+## 💡 Practical Notes
 
-The multi-run system integrates seamlessly with the existing whimperizer:
-- Uses same configuration file structure
-- Compatible with existing group/provider settings
-- Preserves all original functionality
-- No changes to existing single-run workflows
+- Start with 2-3 runs to test
+- Different models/temperatures give more variety to consolidate
+- Check consolidated outputs - AI combination isn't always perfect
+- You can re-run just consolidation on existing files anytime
+
+## 🔗 Compatibility
+
+- Uses existing config file (`config.yaml`)
+- Works with existing groups and provider settings  
+- Single-run workflows unchanged (`python pipeline.py --groups zaltz-1a` still works exactly the same)
+- Multi-run is purely additive
