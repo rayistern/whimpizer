@@ -99,8 +99,10 @@ Combines multiple outputs into one best version.
 
 ```bash
 # Examples
-python consolidator.py --groups zaltz-1a
-python consolidator.py --whimper-dir ../output/whimperized_content --verbose
+python consolidator.py --groups zaltz-1a                          # By group
+python consolidator.py --files file1.md file2.md file3.md         # Specific files
+python consolidator.py --whimper-dir ../output/whimperized_content # All in directory
+python consolidator.py --groups zaltz-1a --verbose                # Verbose mode
 ```
 
 ### 4. `pipeline.py` - Enhanced Original Pipeline
@@ -152,6 +154,21 @@ python consolidator.py --groups zaltz-1a
 
 # Run full pipeline but skip consolidation
 python multi_pipeline.py --runs 3 --skip-consolidate --groups zaltz-1a
+```
+
+### Consolidation Input Methods
+```bash
+# Method 1: By group (auto-finds all files for that group)
+python consolidator.py --groups zaltz-1a zaltz-1b
+
+# Method 2: By directory (consolidates all groups found)
+python consolidator.py --whimper-dir ../output/whimperized_content
+
+# Method 3: Specific files (exact control)
+python consolidator.py --files zaltz-1a-run1.md zaltz-1a-run2.md zaltz-1a-run3.md
+
+# Method 4: Mixed approach with custom output
+python consolidator.py --files file1.md file2.md --output-dir ../output/custom
 ```
 
 ### Dry Run Mode

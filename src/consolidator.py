@@ -284,6 +284,9 @@ Examples:
   # Consolidate specific groups
   python consolidator.py --groups zaltz-1a zaltz-1b
   
+  # Consolidate specific files
+  python consolidator.py --files file1.md file2.md file3.md
+  
   # Use custom directories and config
   python consolidator.py --whimper-dir ../output/whimperized_content --output-dir ../output/consolidated --config ../config/config.yaml
   
@@ -294,6 +297,8 @@ Examples:
     
     parser.add_argument('--groups', nargs='+', metavar='GROUP',
                         help='Consolidate specific groups (e.g., zaltz-1a zaltz-1b). If not specified, consolidates all available groups.')
+    parser.add_argument('--files', nargs='+', metavar='FILE',
+                        help='Specific whimperized files to consolidate (e.g., file1.md file2.md). Overrides --whimper-dir and --groups.')
     parser.add_argument('--whimper-dir', type=str, default='../output/whimperized_content',
                         help='Directory containing whimperized files (default: ../output/whimperized_content)')
     parser.add_argument('--output-dir', type=str, default='../output/whimperized_content',
@@ -308,6 +313,10 @@ Examples:
     args = parser.parse_args()
     
     logger = setup_logging(args.verbose)
+    
+    # Validate arguments
+    if args.files and args.groups:
+        logger.warning("Both --files and --groups specified. --files takes priority and --groups will be ignored.")
     
     # Load configuration
     try:
@@ -326,16 +335,54 @@ Examples:
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
     
     # Find whimperized files
-    logger.info(f"🔍 Searching for whimperized files in: {args.whimper_dir}")
-    grouped_files = find_whimperized_files(args.whimper_dir, args.groups)
-    
-    if not grouped_files:
-        logger.error("No whimperized files found")
-        sys.exit(1)
-    
-    logger.info(f"Found {len(grouped_files)} group(s) to consolidate:")
-    for group_key, files in grouped_files.items():
-        logger.info(f"  📁 {group_key}: {len(files)} files")
+    if args.files:
+        # Use specific files provided
+        logger.info(f"🔍 Using specified files: {args.files}")
+        grouped_files = {}
+        
+        # Validate files exist and group them
+        valid_files = []
+        for file_path_str in args.files:
+            file_path = Path(file_path_str)
+            if not file_path.exists():
+                logger.error(f"File not found: {file_path}")
+                continue
+            if not file_path.suffix.lower() in ['.md', '.txt']:
+                logger.warning(f"Skipping non-text file: {file_path}")
+                continue
+            valid_files.append(file_path)
+        
+        if not valid_files:
+            logger.error("No valid whimperized files found in specified files")
+            sys.exit(1)
+        
+        # Extract group key from first file for naming
+        first_file = valid_files[0]
+        name_parts = first_file.stem.split('-whimperized-')
+        if len(name_parts) >= 2:
+            full_prefix = name_parts[0]
+            prefix_parts = full_prefix.split('-')
+            if len(prefix_parts) >= 2:
+                group_key = f"{prefix_parts[0]}-{prefix_parts[1]}"
+            else:
+                group_key = full_prefix
+        else:
+            group_key = "custom-consolidation"
+        
+        grouped_files[group_key] = valid_files
+        logger.info(f"Grouped {len(valid_files)} files under key: {group_key}")
+    else:
+        # Auto-discover files in directory
+        logger.info(f"🔍 Searching for whimperized files in: {args.whimper_dir}")
+        grouped_files = find_whimperized_files(args.whimper_dir, args.groups)
+        
+        if not grouped_files:
+            logger.error("No whimperized files found")
+            sys.exit(1)
+        
+        logger.info(f"Found {len(grouped_files)} group(s) to consolidate:")
+        for group_key, files in grouped_files.items():
+            logger.info(f"  📁 {group_key}: {len(files)} files")
     
     if args.dry_run:
         logger.info("[DRY RUN] Would consolidate the above groups")
