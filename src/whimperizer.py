@@ -640,7 +640,7 @@ class Whimperizer:
         if isinstance(self.conversation_history, list):
             # JSON format - use conversation history + new content
             messages = self.conversation_history.copy()
-            new_message = f"""Ok fine. So here's a full chapter from the book; let's try with this, please generate a full Whimpy Kid rendition off of this text now! Here are those files of chapter 1 of the original Hillel diary (the version for grown ups). Output just the Whimpy version now, in markdown! And don't shorten it vs what I'm giving you here.
+            new_message = f"""Ok fine. So here's a full chapter from the book; let's try with this, please generate a full Whimpy Kid rendition off of this text now!
 
 {content}"""
             messages.append({
@@ -703,7 +703,7 @@ class Whimperizer:
 
 Please give me a full Wimpy Kid style diary entry for just this incident. Don't worry about the other parts - we'll do those next."""
                     else:
-                        file_message = f"""OK! Here's the next piece from the original. Let's whimperize this specific incident too:
+                        file_message = f"""OK! Here's the next piece from the original. Let's whimperize this one too!
 
 {file_content}
 

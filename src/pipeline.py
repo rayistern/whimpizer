@@ -259,27 +259,33 @@ Examples (run from src/ directory):
                         continue
                         
                     if group_key not in groups:
-                        groups[group_key] = {}
+                        groups[group_key] = {'iterative': [], 'normal': []}
                     
                     if mode_and_timestamp.startswith('iterative-'):
-                        groups[group_key]['iterative'] = file_path
+                        groups[group_key]['iterative'].append(file_path)
                     elif mode_and_timestamp.startswith('normal-'):
-                        groups[group_key]['normal'] = file_path
+                        groups[group_key]['normal'].append(file_path)
             
-            # Select best file for each group (iterative > normal)
+            # Select best file for each group (iterative > normal, newest timestamp)
             best_files = []
             for group_key, versions in groups.items():
-                if 'iterative' in versions:
-                    chosen_file = versions['iterative']
+                if versions['iterative']:  # List has files
+                    # Pick the newest iterative file by timestamp
+                    sorted_files = sorted(versions['iterative'], 
+                                        key=lambda f: f.stem.split('-')[-1], reverse=True)
+                    chosen_file = sorted_files[0]
                     mode = 'iterative'
-                elif 'normal' in versions:
-                    chosen_file = versions['normal']
+                elif versions['normal']:  # List has files
+                    # Pick the newest normal file by timestamp
+                    sorted_files = sorted(versions['normal'], 
+                                        key=lambda f: f.stem.split('-')[-1], reverse=True)
+                    chosen_file = sorted_files[0]
                     mode = 'normal'
                 else:
                     continue
                 
                 best_files.append((chosen_file, mode))
-                print(f"📄 Group {group_key}: Using {mode} version")
+                print(f"📄 Group {group_key}: Using {mode} version - {chosen_file.name}")
             
             return best_files
         
