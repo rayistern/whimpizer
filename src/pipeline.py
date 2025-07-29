@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Complete Whimperizer Pipeline
-Orchestrates the full process: Download → AI Transform → PDF Generation
+Orchestrates the full process: Download -> AI Transform -> PDF Generation
 """
 
 import os
@@ -41,6 +41,12 @@ def check_dependencies():
         'wimpy_pdf_generator.py'
     ]
     
+    # Multi-run files are optional but checked when needed
+    multi_run_files = [
+        'multi_runner.py',
+        'consolidator.py'
+    ]
+    
     missing = []
     for file in required_files:
         if not Path(file).exists():
@@ -53,12 +59,15 @@ def check_dependencies():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Complete Whimperizer Pipeline: Download → AI Transform → PDF Generation",
+        description="Complete Whimperizer Pipeline: Download -> AI Transform -> PDF Generation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples (run from src/ directory):
   # Basic pipeline (uses selenium by default for better success rate)
   python pipeline.py --groups zaltz-1a
+  
+  # Multi-run pipeline (runs whimperizer multiple times and consolidates)
+  python pipeline.py --runs 3 --groups zaltz-1a
   
   # Specify AI model by editing ../config/config.yaml first, then:
   python pipeline.py --provider openai --groups zaltz-1a
@@ -138,6 +147,10 @@ Examples (run from src/ directory):
     parser.add_argument('--resources-dir', type=str, default='../resources',
                         help='Resources directory (default: ../resources)')
     
+    # Multi-run Options
+    parser.add_argument('--runs', type=int, default=1,
+                        help='Number of whimperizer runs (default: 1, auto-consolidates when > 1)')
+    
     # General Options
     parser.add_argument('--verbose', '-v', action='store_true',
                         help='Verbose output')
@@ -198,32 +211,82 @@ Examples (run from src/ directory):
     
     # Step 2: AI Transformation
     if not args.skip_whimperize and success:
-        print("\n🤖 Step 2: AI transformation...")
-        
-        cmd = ['python', 'whimperizer.py']
-        
-        if args.config != '../config/config.yaml':
-            cmd.extend(['--config', args.config])
-        
-        if args.provider:
-            cmd.extend(['--provider', args.provider])
-        
-        if args.groups:
-            cmd.extend(['--groups'] + args.groups)
-        
-        if args.verbose:
-            cmd.append('--verbose')
-        
-        if args.log_level:
-            cmd.extend(['--log-level', args.log_level])
-        
-        if args.dry_run:
-            print(f"Would run: {' '.join(cmd)}")
+        if args.runs > 1:
+            print(f"\n🤖 Step 2: AI multi-run transformation ({args.runs} runs)...")
+            
+            # Multi-run step
+            cmd = ['python', 'multi_runner.py', '--runs', str(args.runs)]
+            
+            if args.config != '../config/config.yaml':
+                cmd.extend(['--config', args.config])
+            
+            if args.provider:
+                cmd.extend(['--provider', args.provider])
+            
+            if args.groups:
+                cmd.extend(['--groups'] + args.groups)
+            
+            if args.verbose:
+                cmd.append('--verbose')
+            
+            if args.log_level:
+                cmd.extend(['--log-level', args.log_level])
+            
+            if args.dry_run:
+                print(f"Would run: {' '.join(cmd)}")
+            else:
+                success = run_command(cmd, "Multi-run AI transformation", args.verbose)
+                if not success:
+                    print("❌ Multi-run AI transformation failed")
+                    sys.exit(1)
+            
+            # Consolidation step
+            print(f"\n🔄 Step 2b: Consolidating {args.runs} runs...")
+            
+            cmd = ['python', 'consolidator.py']
+            
+            if args.config != '../config/config.yaml':
+                cmd.extend(['--config', args.config])
+            
+            if args.groups:
+                cmd.extend(['--groups'] + args.groups)
+            
+            if args.verbose:
+                cmd.append('--verbose')
+            
+            if args.dry_run:
+                print(f"Would run: {' '.join(cmd)}")
+            else:
+                consolidation_success = run_command(cmd, "Consolidation", args.verbose)
+                if not consolidation_success:
+                    print("⚠️ Consolidation failed, will use individual runs for PDFs")
         else:
-            success = run_command(cmd, "AI transformation", args.verbose)
-            if not success:
-                print("❌ AI transformation failed")
-                sys.exit(1)
+            print("\n🤖 Step 2: AI transformation...")
+            
+            cmd = ['python', 'whimperizer.py']
+            
+            if args.config != '../config/config.yaml':
+                cmd.extend(['--config', args.config])
+            
+            if args.provider:
+                cmd.extend(['--provider', args.provider])
+            
+            if args.groups:
+                cmd.extend(['--groups'] + args.groups)
+            
+            if args.verbose:
+                cmd.append('--verbose')
+            
+            if args.log_level:
+                cmd.extend(['--log-level', args.log_level])
+            
+            if args.dry_run:
+                print(f"Would run: {' '.join(cmd)}")
+            else:
+                success = run_command(cmd, "AI transformation", args.verbose)
+                if not success:
+                    print("❌ AI transformation failed")
+                    sys.exit(1)
     else:
         print("⏭️  Skipping whimperize (using existing content)")
     
@@ -233,7 +296,7 @@ Examples (run from src/ directory):
         
         # Find whimperized files with smart selection between normal and iterative versions
         def find_best_whimperized_files(whimper_dir, target_groups=None):
-            """Find the best whimperized file for each group (iterative > normal)"""
+            """Find the best whimperized file for each group (consolidated > iterative > normal, newest timestamp)"""
             all_files = list(Path(whimper_dir).glob('*whimperized*.md'))
             all_files.extend(list(Path(whimper_dir).glob('*whimperized*.txt')))
             
@@ -259,17 +322,25 @@ Examples (run from src/ directory):
                         continue
                         
                     if group_key not in groups:
-                        groups[group_key] = {'iterative': [], 'normal': []}
+                        groups[group_key] = {'consolidated': [], 'iterative': [], 'normal': []}
                     
-                    if mode_and_timestamp.startswith('iterative-'):
+                    if mode_and_timestamp.startswith('consolidated-'):
+                        groups[group_key]['consolidated'].append(file_path)
+                    elif mode_and_timestamp.startswith('iterative-'):
                         groups[group_key]['iterative'].append(file_path)
                     elif mode_and_timestamp.startswith('normal-'):
                         groups[group_key]['normal'].append(file_path)
             
-            # Select best file for each group (iterative > normal, newest timestamp)
+            # Select best file for each group (consolidated > iterative > normal, newest timestamp)
             best_files = []
             for group_key, versions in groups.items():
-                if versions['iterative']:  # List has files
+                if versions['consolidated']:  # List has files
+                    # Pick the newest consolidated file by timestamp
+                    sorted_files = sorted(versions['consolidated'], 
+                                        key=lambda f: f.stem.split('-')[-1], reverse=True)
+                    chosen_file = sorted_files[0]
+                    mode = 'consolidated'
+                elif versions['iterative']:  # List has files
                     # Pick the newest iterative file by timestamp
                     sorted_files = sorted(versions['iterative'], 
                                         key=lambda f: f.stem.split('-')[-1], reverse=True)
@@ -285,7 +356,7 @@ Examples (run from src/ directory):
                     continue
                 
                 best_files.append((chosen_file, mode))
-                print(f"📄 Group {group_key}: Using {mode} version - {chosen_file.name}")
+                print(f"📄 Group {group_key}: Using {mode} version")
             
             return best_files
         
