@@ -20,15 +20,21 @@ python pipeline.py --runs 3 --groups zaltz-1a
 # Multi-run standalone (no consolidation)
 python multi_runner.py --runs 3 --groups zaltz-1a
 
-# Consolidate existing files
+# Consolidate all files for a group (EASIEST!)
 python consolidator.py --groups zaltz-1a
+
+# Multiple groups at once
+python consolidator.py --groups zaltz-1a zaltz-1b zaltz-2a
+
+# All groups automatically
+python consolidator.py --whimper-dir ../output/whimperized_content
 
 # Consolidate specific files (FULL PATHS REQUIRED)
 python consolidator.py --files \
   "../output/whimperized_content/zaltz-1a-iterative-20250729_120000.md" \
   "../output/whimperized_content/zaltz-1a-iterative-20250729_130000.md"
 
-# Test consolidation first
+# Test consolidation first (recommended!)
 python consolidator.py --groups zaltz-1a --dry-run --verbose
 ```
 
@@ -99,10 +105,33 @@ python consolidator.py --files \
     zaltz-1a-whimperized-iterative-20250724_140000.md
 ```
 
+## Groups Flag - The Easy Way! 
+
+**The `--groups` flag automatically finds ALL files for a group:**
+
+```bash
+# Single group (finds ALL zaltz-1a files automatically)
+python consolidator.py --groups zaltz-1a --verbose
+# Found: normal, iterative, consolidated - everything!
+
+# Multiple groups at once
+python consolidator.py --groups zaltz-1a zaltz-1b zaltz-2a
+
+# See what it would do first
+python consolidator.py --groups zaltz-1a --dry-run
+# Shows: "📁 zaltz-1a: 5 files" - auto-discovered!
+```
+
+**Why use `--groups` instead of `--files`?**
+- ✅ **No file paths needed** - automatically finds everything
+- ✅ **Gets all versions** - normal, iterative, consolidated  
+- ✅ **Multiple groups** - process several at once
+- ✅ **Less typing** - `--groups zaltz-1a` vs long file paths
+
 ## Advanced Workflows
 
 ```bash
-# Consolidate files from different sessions
+# Consolidate files from different sessions (manual method)
 python consolidator.py --files \
     ../output/whimperized_content/zaltz-1a-iterative-gpt-4-20250729_120000.md \
     ../output/whimperized_content/zaltz-1a-iterative-claude-20250729_130000.md \

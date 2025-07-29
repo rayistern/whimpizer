@@ -130,10 +130,16 @@ python pipeline.py --skip-download --groups zaltz-1a --verbose
 
 ### Consolidation Only
 ```bash
-# Consolidate existing files for a group
+# Consolidate all files for a group (EASIEST METHOD!)
 python consolidator.py --groups zaltz-1a
 
-# Consolidate specific files
+# Multiple groups at once
+python consolidator.py --groups zaltz-1a zaltz-1b zaltz-2a
+
+# All groups in directory
+python consolidator.py --whimper-dir ../output/whimperized_content
+
+# Consolidate specific files (full paths required)
 python consolidator.py --files \
   "../output/whimperized_content/zaltz-1a-iterative-20250729_120000.md" \
   "../output/whimperized_content/zaltz-1a-iterative-20250729_130000.md"

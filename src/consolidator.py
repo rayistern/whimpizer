@@ -104,14 +104,71 @@ def read_file_content(file_path: Path) -> str:
 
 def create_consolidation_prompt(contents: List[str]) -> str:
     """Create the consolidation prompt for the AI"""
-    base_prompt = """Please take all these examples and compare them against each other; take the best, MOST whimperized pieces from them all and combine it into one GREAT final product.
+    base_prompt = """Please take all these examples and compare them against each other; take the best, MOST whimperized pieces from them all and combine it into one GREAT final product. Here are the original guidelines from how they were created:
 
-Focus on:
-- The most vivid and childlike descriptions
-- The best Wimpy Kid-style humor and voice
-- The most engaging storytelling elements
-- The clearest and most accessible language for children
-- The most creative and imaginative elements
+Wimpy Kid Style Guidelines for Samarkand Stories
+
+Core Mission
+Transform grown-up historical memoir material into kid-accessible Wimpy Kid style diary entries that inspire Jewish children with stories of their ancestors' self-sacrifice, while making the content episodic and engaging.
+
+Story Structure
+One central goal or challenge that drives the entire narrative
+Progressive storyline where each diary entry builds on the previous one
+Each entry should add a new twist, scheme, or funny mishap
+Reorganize source events as needed for maximum narrative flow
+Transform narrative paragraphs from source into detailed dialog scenes
+
+Voice & Perspective
+8-year-old narrator writing in real-time diary format
+Self-centered kid perspective - everything affects HIM specifically
+Unfairness rankings ("This is a 47 out of 10 on the unfairness scale")
+Kid logic and misunderstandings of adult conversations
+Dramatic overreactions to everyday problems
+Finding weird positives in bad situations
+
+Content Expansion Rules
+Much longer output than input - each source paragraph becomes multiple diary entries
+Extensive dialogue (on separate lines with quotes for PDF formatting)
+Physical comedy and mishaps
+Sensory descriptions (smells, sounds, textures)
+Overly specific kid observations
+Random tangents that relate back to the main story
+Schemes and "brilliant" solutions that usually backfire
+
+Cultural Guidelines
+For Chabad audience - use appropriate terminology
+Use "davening" not "prayers," "shul" not "synagogue," "zeidy" not "grandpa"
+Avoid TV/video game references - use candy, bikes, outdoor play instead
+Natural Jewish childhood - not cultural appropriate (Jewish kids don't actually eat kugel every day, they in fact eat potato chips and read Wimpy Kid. Just not up to date with the latest celebrities, not playing pranks, not being mean on purpose...)
+Address real dangers seriously - don't whitewash evil as merely "annoying"
+
+Wimpy Writing Style
+Diary format with days (Monday, Tuesday) not chapters
+Short, punchy paragraphs
+CAPS for emphasis
+Parenthetical asides and commentary
+Casual transitions ("Anyway," "Oh yeah")
+Everything is dramatic and the WORST or BEST thing ever
+
+Formatting Requirements
+Use markdown formatting (# for titles, ## for days, ### for subsections)
+All dialogue on dedicated separate lines, within quotes for easier automated PDF conversion
+No charts or bullet lists - prose only for printing
+Structure as actual diary entries with dates
+
+Story Fidelity
+Don't add anything new to the historical narrative
+Preserve as much as available for this young audience from the source material
+Preserve all key facts and emotional weight
+Can reorganize chronology for better storytelling
+Turn every source element into detailed, immersive scenes
+
+Inspiration Goals
+Show the self-sacrifice and courage of ancestors
+Make keeping traditions meaningful and heroic
+Demonstrate that kids can be brave in difficult circumstances
+Pride in Jewish identity even when it's challenging
+Family dedication to Torah education against all odds
 
 Here are the examples to consolidate:
 

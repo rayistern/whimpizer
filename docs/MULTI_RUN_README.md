@@ -113,14 +113,16 @@ Takes multiple whimperized files and asks AI to combine the best parts.
 
 ```bash
 # Different ways to specify input files:
-python consolidator.py --groups zaltz-1a                          # Auto-find files for group
+python consolidator.py --groups zaltz-1a                          # Auto-find ALL files for group (RECOMMENDED!)
+python consolidator.py --groups zaltz-1a zaltz-1b zaltz-2a        # Multiple groups at once
+python consolidator.py --whimper-dir ../output/whimperized_content # All groups in directory
 python consolidator.py --files \
   "../output/whimperized_content/zaltz-1a-iterative-20250729_120000.md" \
-  "../output/whimperized_content/zaltz-1a-iterative-20250729_130000.md"  # Specific files (full paths!)
-python consolidator.py --whimper-dir ../output/whimperized_content # All groups in directory
+  "../output/whimperized_content/zaltz-1a-iterative-20250729_130000.md"  # Specific files (manual method)
 
-# Test first with dry-run
+# Test first with dry-run (shows how many files found)
 python consolidator.py --groups zaltz-1a --dry-run --verbose
+# Output: "📁 zaltz-1a: 5 files" - automatically discovered!
 ```
 
 ### 4. `pipeline.py` - Original Pipeline + Multi-Run
@@ -183,15 +185,30 @@ python multi_pipeline.py --runs 3 --skip-consolidate --groups zaltz-1a
 ```
 
 ### How Consolidator Finds Files
-```bash
-# Auto-find: Search directory for all files matching group names
-python consolidator.py --groups zaltz-1a zaltz-1b
 
-# Auto-find: Process all groups found in directory  
+**🎯 Recommended: Use `--groups` flag (automatic discovery)**
+```bash
+# Single group - finds ALL files automatically
+python consolidator.py --groups zaltz-1a
+# Finds: zaltz-1a-normal-*, zaltz-1a-iterative-*, zaltz-1a-consolidated-*
+
+# Multiple groups - processes each group separately  
+python consolidator.py --groups zaltz-1a zaltz-1b zaltz-2a
+
+# All groups in directory - discovers everything
 python consolidator.py --whimper-dir ../output/whimperized_content
 
-# Manual: Specify exact files to consolidate
-python consolidator.py --files file1.md file2.md file3.md
+# Check what it would find first
+python consolidator.py --groups zaltz-1a --dry-run --verbose
+# Shows: "📁 zaltz-1a: 5 files" before processing
+```
+
+**🔧 Manual: Specify exact files (when you need precise control)**
+```bash
+# Specific files only
+python consolidator.py --files \
+  "../output/whimperized_content/zaltz-1a-iterative-gpt-4-20250729_120000.md" \
+  "../output/whimperized_content/zaltz-1a-normal-20250729_130000.md"
 
 # Manual + custom output location
 python consolidator.py --files file1.md file2.md --output-dir ../output/custom
@@ -223,7 +240,8 @@ python consolidator.py --groups zaltz-1a --dry-run
 ## 🔧 Troubleshooting
 
 **Common Issues:**
-- **"Files not found"**: Use full paths with `--files` option, check `../output/whimperized_content/`
+- **"Files not found"**: Use `--groups zaltz-1a` instead of `--files` for automatic discovery, or check `../output/whimperized_content/`
+- **Too few files**: Use `--groups` to auto-find all versions (normal, iterative, consolidated) instead of manual paths
 - **Unicode encoding errors**: Fixed in latest version (Windows compatibility)
 - **Git merge conflicts**: All single-run workflows preserved and work the same
 - **No consolidation happening**: Need at least 2 files; check files exist with same group name
