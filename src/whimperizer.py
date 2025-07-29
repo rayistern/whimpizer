@@ -65,7 +65,7 @@ def setup_logging(log_level=logging.INFO):
     file_handler.setFormatter(detailed_formatter)
     root_logger.addHandler(file_handler)
     
-    # Separate file handler for API logs
+    # Separate file handler for API logs (full content)
     api_handler = logging.FileHandler('logs/api_calls.log', encoding='utf-8')
     api_handler.setLevel(logging.DEBUG)
     api_handler.setFormatter(detailed_formatter)
@@ -76,7 +76,48 @@ def setup_logging(log_level=logging.INFO):
     api_logger.setLevel(logging.DEBUG)
     api_logger.propagate = False  # Don't propagate to root logger
     
+    # Separate file handler for truncated API logs (easy debugging)
+    api_truncated_handler = logging.FileHandler('logs/api_calls_truncated.log', encoding='utf-8')
+    api_truncated_handler.setLevel(logging.DEBUG)
+    api_truncated_handler.setFormatter(detailed_formatter)
+    
+    # Truncated API logger
+    api_truncated_logger = logging.getLogger('whimperizer.api.truncated')
+    api_truncated_logger.addHandler(api_truncated_handler)
+    api_truncated_logger.setLevel(logging.DEBUG)
+    api_truncated_logger.propagate = False  # Don't propagate to root logger
+    
     return logging.getLogger(__name__)
+
+
+def truncate_content(content: str, max_chars: int = 200, show_length: bool = True) -> str:
+    """
+    Truncate content to show first N characters with ellipsis if truncated.
+    
+    Args:
+        content: The content to truncate
+        max_chars: Maximum characters to show (default 200)
+        show_length: Whether to show original length in truncation (default True)
+    
+    Returns:
+        Truncated content string
+    """
+    if not content:
+        return "[EMPTY]"
+    
+    # Remove excessive whitespace and newlines for cleaner display
+    clean_content = ' '.join(content.strip().split())
+    
+    if len(clean_content) <= max_chars:
+        return clean_content
+    
+    truncated = clean_content[:max_chars]
+    
+    if show_length:
+        return f"{truncated}... [TRUNCATED - Original length: {len(content):,} chars]"
+    else:
+        return f"{truncated}..."
+
 
 logger = setup_logging()
 
@@ -92,6 +133,7 @@ class OpenAIProvider(AIProvider):
     def __init__(self, config: dict):
         super().__init__(config)
         self.api_logger = logging.getLogger('whimperizer.api.openai')
+        self.api_truncated_logger = logging.getLogger('whimperizer.api.truncated')
         
         api_key = os.getenv('OPENAI_API_KEY')
         if not api_key:
@@ -115,6 +157,13 @@ class OpenAIProvider(AIProvider):
             # Log message details (FULL content for debugging)
             for i, msg in enumerate(messages):
                 self.api_logger.debug(f"Message {i+1} ({msg['role']}): {msg['content']}")
+            
+            # Log truncated message details (easier debugging)
+            self.api_truncated_logger.info("=== OpenAI API Request (Truncated) ===")
+            self.api_truncated_logger.info(f"Model: {self.config['model']} | Messages: {len(messages)}")
+            for i, msg in enumerate(messages):
+                truncated_content = truncate_content(msg['content'])
+                self.api_truncated_logger.info(f"Message {i+1} ({msg['role']}): {truncated_content}")
             
             # Make API call - handle different model parameter requirements
             api_params = {
@@ -167,6 +216,11 @@ class OpenAIProvider(AIProvider):
             # Log response content (FULL content for debugging)
             response_content = response.choices[0].message.content
             self.api_logger.debug(f"Response content: {response_content}")
+            
+            # Log truncated response content (easier debugging)
+            truncated_response = truncate_content(response_content)
+            self.api_truncated_logger.info(f"=== OpenAI API Response (Truncated) ===")
+            self.api_truncated_logger.info(f"Response: {truncated_response}")
             
             return response_content
             
@@ -230,6 +284,7 @@ class AnthropicProvider(AIProvider):
     def __init__(self, config: dict):
         super().__init__(config)
         self.api_logger = logging.getLogger('whimperizer.api.anthropic')
+        self.api_truncated_logger = logging.getLogger('whimperizer.api.truncated')
         
         if not ANTHROPIC_AVAILABLE:
             raise ImportError("anthropic package not installed. Run: pip install anthropic")
@@ -254,6 +309,13 @@ class AnthropicProvider(AIProvider):
             for i, msg in enumerate(messages):
                 content_preview = msg['content'][:200] + "..." if len(msg['content']) > 200 else msg['content']
                 self.api_logger.debug(f"Message {i+1} ({msg['role']}): {content_preview}")
+            
+            # Log truncated message details (easier debugging)
+            self.api_truncated_logger.info("=== Anthropic API Request (Truncated) ===")
+            self.api_truncated_logger.info(f"Model: {self.config['model']} | Messages: {len(messages)}")
+            for i, msg in enumerate(messages):
+                truncated_content = truncate_content(msg['content'])
+                self.api_truncated_logger.info(f"Message {i+1} ({msg['role']}): {truncated_content}")
             
             # Make API call
             response = self.client.messages.create(
@@ -295,6 +357,11 @@ class AnthropicProvider(AIProvider):
             content_preview = response_content[:500] + "..." if len(response_content) > 500 else response_content
             self.api_logger.debug(f"Response content: {content_preview}")
             
+            # Log truncated response content (easier debugging)
+            truncated_response = truncate_content(response_content)
+            self.api_truncated_logger.info(f"=== Anthropic API Response (Truncated) ===")
+            self.api_truncated_logger.info(f"Response: {truncated_response}")
+            
             return response_content
             
         except Exception as e:
@@ -321,6 +388,7 @@ class GoogleProvider(AIProvider):
     def __init__(self, config: dict):
         super().__init__(config)
         self.api_logger = logging.getLogger('whimperizer.api.google')
+        self.api_truncated_logger = logging.getLogger('whimperizer.api.truncated')
         
         if not GOOGLE_AVAILABLE:
             raise ImportError("google-generativeai package not installed. Run: pip install google-generativeai")
@@ -354,6 +422,15 @@ class GoogleProvider(AIProvider):
             prompt_preview = prompt[:500] + "..." if len(prompt) > 500 else prompt
             self.api_logger.debug(f"Combined prompt: {prompt_preview}")
             
+            # Log truncated message details (easier debugging)
+            self.api_truncated_logger.info("=== Google API Request (Truncated) ===")
+            self.api_truncated_logger.info(f"Model: {self.config['model']} | Messages: {len(messages)}")
+            for i, msg in enumerate(messages):
+                truncated_content = truncate_content(msg['content'])
+                self.api_truncated_logger.info(f"Message {i+1} ({msg['role']}): {truncated_content}")
+            truncated_prompt = truncate_content(prompt)
+            self.api_truncated_logger.info(f"Combined prompt: {truncated_prompt}")
+            
             # Make API call
             response = self.model.generate_content(
                 prompt,
@@ -385,6 +462,11 @@ class GoogleProvider(AIProvider):
             response_content = response.text
             content_preview = response_content[:500] + "..." if len(response_content) > 500 else response_content
             self.api_logger.debug(f"Response content: {content_preview}")
+            
+            # Log truncated response content (easier debugging)
+            truncated_response = truncate_content(response_content)
+            self.api_truncated_logger.info(f"=== Google API Response (Truncated) ===")
+            self.api_truncated_logger.info(f"Response: {truncated_response}")
             
             return response_content
             
