@@ -97,7 +97,7 @@ def read_file_content(file_path: Path) -> str:
     """Read content from a file"""
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
-            return f.strip()
+            return f.read().strip()
     except Exception as e:
         logging.getLogger(__name__).error(f"Failed to read {file_path}: {e}")
         return ""

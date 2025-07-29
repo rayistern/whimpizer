@@ -1,0 +1,48 @@
+[1mdiff --cc src/pipeline.py[m
+[1mindex 93fa5f4,582967b..0000000[m
+[1m--- a/src/pipeline.py[m
+[1m+++ b/src/pipeline.py[m
+[36m@@@ -259,27 -308,26 +259,21 @@@[m [mExamples (run from src/ directory)[m
+                          continue[m
+                          [m
+                      if group_key not in groups:[m
+[31m-                         groups[group_key] = {'iterative': [], 'normal': []}[m
+[32m+                         groups[group_key] = {}[m
+                      [m
+[31m -                    if mode_and_timestamp.startswith('consolidated-'):[m
+[31m -                        groups[group_key]['consolidated'] = file_path[m
+[31m -                    elif mode_and_timestamp.startswith('iterative-'):[m
+[32m +                    if mode_and_timestamp.startswith('iterative-'):[m
+[31m-                         groups[group_key]['iterative'].append(file_path)[m
+[32m+                         groups[group_key]['iterative'] = file_path[m
+                      elif mode_and_timestamp.startswith('normal-'):[m
+[31m-                         groups[group_key]['normal'].append(file_path)[m
+[32m+                         groups[group_key]['normal'] = file_path[m
+              [m
+[31m-             # Select best file for each group (iterative > normal, newest timestamp)[m
+[31m -            # Select best file for each group (consolidated > iterative > normal)[m
+[32m++            # Select best file for each group (iterative > normal)[m
+              best_files = [][m
+              for group_key, versions in groups.items():[m
+[31m-                 if versions['iterative']:  # List has files[m
+[31m-                     # Pick the newest iterative file by timestamp[m
+[31m-                     sorted_files = sorted(versions['iterative'], [m
+[31m-                                         key=lambda f: f.stem.split('-')[-1], reverse=True)[m
+[31m-                     chosen_file = sorted_files[0][m
+[31m -                if 'consolidated' in versions:[m
+[31m -                    chosen_file = versions['consolidated'][m
+[31m -                    mode = 'consolidated'[m
+[31m -                elif 'iterative' in versions:[m
+[32m++                if 'iterative' in versions:[m
+[32m+                     chosen_file = versions['iterative'][m
+                      mode = 'iterative'[m
+[31m-                 elif versions['normal']:  # List has files[m
+[31m-                     # Pick the newest normal file by timestamp[m
+[31m-                     sorted_files = sorted(versions['normal'], [m
+[31m-                                         key=lambda f: f.stem.split('-')[-1], reverse=True)[m
+[31m-                     chosen_file = sorted_files[0][m
+[32m+                 elif 'normal' in versions:[m
+[32m+                     chosen_file = versions['normal'][m
+                      mode = 'normal'[m
+                  else:[m
+                      continue[m

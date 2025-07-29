@@ -23,8 +23,13 @@ python multi_runner.py --runs 3 --groups zaltz-1a
 # Consolidate existing files
 python consolidator.py --groups zaltz-1a
 
-# Consolidate specific files
-python consolidator.py --files file1.md file2.md file3.md
+# Consolidate specific files (FULL PATHS REQUIRED)
+python consolidator.py --files \
+  "../output/whimperized_content/zaltz-1a-iterative-20250729_120000.md" \
+  "../output/whimperized_content/zaltz-1a-iterative-20250729_130000.md"
+
+# Test consolidation first
+python consolidator.py --groups zaltz-1a --dry-run --verbose
 ```
 
 ## Pipeline Differences
@@ -66,9 +71,11 @@ multi_run:
 ## File Priority for PDFs
 
 PDF generation picks the best available file:
-1. **consolidated** files (from consolidator)
-2. **iterative** files (from multi-run)  
-3. **normal** files (from single run)
+1. **🥇 consolidated** files (from consolidator) - *AI-combined best parts*
+2. **🥈 iterative** files (from multi-run) - *Multiple model outputs*  
+3. **🥉 normal** files (from single run) - *Single model output*
+
+**Within each type:** Newest timestamp wins (e.g., `20250729_153000` beats `20250729_120000`)
 
 ## Common Workflows
 
@@ -92,8 +99,38 @@ python consolidator.py --files \
     zaltz-1a-whimperized-iterative-20250724_140000.md
 ```
 
+## Advanced Workflows
+
+```bash
+# Consolidate files from different sessions
+python consolidator.py --files \
+    ../output/whimperized_content/zaltz-1a-iterative-gpt-4-20250729_120000.md \
+    ../output/whimperized_content/zaltz-1a-iterative-claude-20250729_130000.md \
+    ../output/whimperized_content/zaltz-1a-normal-20250729_140000.md
+
+# Multi-run with custom output directory
+python consolidator.py --groups zaltz-1a --output-dir ../output/custom_consolidated
+
+# Process all groups in directory automatically
+python consolidator.py --whimper-dir ../output/whimperized_content
+
+# Multi-run with only specific AI provider
+python pipeline.py --runs 3 --provider openai --groups zaltz-1a
+```
+
+## File Naming Patterns
+
+**Understanding file types:**
+- `zaltz-1a-whimperized-normal-20250729_123456.md` (single run)
+- `zaltz-1a-whimperized-iterative-gpt-4-1-20250729_123456.md` (multi-run with model)
+- `zaltz-1a-whimperized-consolidated-20250729_123456.md` (AI-consolidated best)
+
+**Pipeline automatically picks:** consolidated > iterative > normal, newest timestamp
+
 ## When Things Fail
 
 - **Multi-runner fails**: Continues with successful runs
 - **Consolidation fails**: Makes PDFs from individual runs instead
 - **Want to debug**: Run each tool separately with `--verbose`
+- **Files not found**: Use full paths with `--files`, check `../output/whimperized_content/`
+- **Git merge issues**: All single-run workflows still work the same

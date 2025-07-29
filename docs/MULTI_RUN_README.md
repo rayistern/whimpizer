@@ -114,8 +114,13 @@ Takes multiple whimperized files and asks AI to combine the best parts.
 ```bash
 # Different ways to specify input files:
 python consolidator.py --groups zaltz-1a                          # Auto-find files for group
-python consolidator.py --files file1.md file2.md file3.md         # Specific files
+python consolidator.py --files \
+  "../output/whimperized_content/zaltz-1a-iterative-20250729_120000.md" \
+  "../output/whimperized_content/zaltz-1a-iterative-20250729_130000.md"  # Specific files (full paths!)
 python consolidator.py --whimper-dir ../output/whimperized_content # All groups in directory
+
+# Test first with dry-run
+python consolidator.py --groups zaltz-1a --dry-run --verbose
 ```
 
 ### 4. `pipeline.py` - Original Pipeline + Multi-Run
@@ -137,7 +142,7 @@ The system uses a priority-based naming system:
 - `zaltz-1a-whimperized-iterative-gpt-4-1-20250724_123456.md` (multi-run)
 - `zaltz-1a-whimperized-consolidated-20250724_123456.md` (best combined)
 
-**PDF Generation Priority**: consolidated > iterative > normal
+**PDF Generation Priority**: consolidated > iterative > normal, newest timestamp wins
 
 ## 🎨 Consolidation Prompt
 
@@ -214,6 +219,21 @@ python consolidator.py --groups zaltz-1a --dry-run
 - Each tool can be run separately
 - Use `--verbose` for detailed output
 - Use `--dry-run` to see what would happen
+
+## 🔧 Troubleshooting
+
+**Common Issues:**
+- **"Files not found"**: Use full paths with `--files` option, check `../output/whimperized_content/`
+- **Unicode encoding errors**: Fixed in latest version (Windows compatibility)
+- **Git merge conflicts**: All single-run workflows preserved and work the same
+- **No consolidation happening**: Need at least 2 files; check files exist with same group name
+- **Wrong file selected**: System picks by priority (consolidated > iterative > normal) then newest timestamp
+
+**Performance Tips:**
+- Start with `--runs 2` to test, then increase
+- Use `--dry-run` to verify before running
+- Different models/temperatures give more variety to consolidate
+- Consolidation quality depends on input variety - more different approaches = better results
 
 ## 💡 Practical Notes
 
